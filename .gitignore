@@ -31,4 +31,9 @@
 *.out
 *.app
 
+# Builds
 build/
+cmake-build-*
+
+# .ide releated
+.idea
