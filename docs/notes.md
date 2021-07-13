@@ -16,6 +16,12 @@
 - [从零开始手敲次世代游戏引擎（十一）](https://zhuanlan.zhihu.com/p/28719057) 使用Direct 3D进行3D绘制；（暂无运行环境，先跳过）
 - [从零开始手敲次世代游戏引擎（十二）](https://zhuanlan.zhihu.com/p/28756646) linux 环境使用opengl； （暂无直接运行环境，使用macOS进行接入）
 - [从零开始手敲次世代游戏引擎（MacOS特别篇）](https://zhuanlan.zhihu.com/p/30721683) mac 接入xcb及使用opengl
+- [从零开始手敲次世代游戏引擎（十三）](https://zhuanlan.zhihu.com/p/28800368) windows 接入opengl（暂无运行环境，先跳过）
+- [从零开始手敲次世代游戏引擎（十四）](https://zhuanlan.zhihu.com/p/28806010) windows 接入opengl相关代码解析（暂无运行环境，先跳过）
+- [从零开始手敲次世代游戏引擎（十五）](https://zhuanlan.zhihu.com/p/28809434) DX12（暂无运行环境，先跳过）
+- [从零开始手敲次世代游戏引擎（十六）](https://zhuanlan.zhihu.com/p/28981044) draw more （暂无运行环境，先跳过）
+- [从零开始手敲次世代游戏引擎（十七）](https://zhuanlan.zhihu.com/p/29017530) 进行设计思路梳理
+- [从零开始手敲次世代游戏引擎（十八）](https://zhuanlan.zhihu.com/p/29023579) 内存管理相关梳理及实现
 
 ---
 
@@ -102,6 +108,19 @@ link_directories(/opt/X11/lib)
 可以**通过使用`otool`查看dylib的版本信息和兼容信息**：
 
 ```shell
+# Wrong
+
+➜ otool -L ./hello_opengl
+./hello_opengl:
+	/usr/local/opt/libxcb/lib/libxcb.1.dylib (compatibility version 3.0.0, current version 3.0.0)
+	/usr/local/opt/libx11/lib/libX11.6.dylib (compatibility version 11.0.0, current version 11.0.0)
+	/usr/local/opt/libx11/lib/libX11-xcb.1.dylib (compatibility version 2.0.0, current version 2.0.0)
+	/opt/X11/lib/libGL.1.dylib (compatibility version 4.0.0, current version 4.0.0)
+	/opt/X11/lib/libGLU.1.dylib (compatibility version 5.0.0, current version 5.1.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 902.1.0)
+	
+
 ➜ otool -L /usr/local/lib/libxcb-glx.dylib
 /usr/local/lib/libxcb-glx.dylib:
 	/usr/local/opt/libxcb/lib/libxcb-glx.0.dylib (compatibility version 1.0.0, current version 1.0.0)
@@ -109,13 +128,25 @@ link_directories(/opt/X11/lib)
 	/usr/local/opt/libxau/lib/libXau.6.dylib (compatibility version 7.0.0, current version 7.0.0)
 	/usr/local/opt/libxdmcp/lib/libXdmcp.6.dylib (compatibility version 7.0.0, current version 7.0.0)
 	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+
+# Correct
+
+➜ otool -L ./hello_opengl
+./hello_opengl:
+	/opt/X11/lib/libxcb.1.dylib (compatibility version 3.0.0, current version 3.0.0)       [DIFF]
+	/opt/X11/lib/libX11.6.dylib (compatibility version 11.0.0, current version 11.0.0)     [DIFF]
+	/opt/X11/lib/libX11-xcb.1.dylib (compatibility version 2.0.0, current version 2.0.0)   [DIFF]
+	/opt/X11/lib/libGL.1.dylib (compatibility version 4.0.0, current version 4.0.0)
+	/opt/X11/lib/libGLU.1.dylib (compatibility version 5.0.0, current version 5.1.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 902.1.0)
 	
 ➜ otool -L /opt/X11/lib/libxcb-glx.dylib
 /opt/X11/lib/libxcb-glx.dylib:
-	/opt/X11/lib/libxcb-glx.0.dylib (compatibility version 1.0.0, current version 1.0.0)
-	/opt/X11/lib/libxcb.1.dylib (compatibility version 3.0.0, current version 3.0.0)
-	/opt/X11/lib/libXau.6.dylib (compatibility version 7.0.0, current version 7.0.0)
-	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1292.120.1)
+	/opt/X11/lib/libxcb-glx.0.dylib (compatibility version 1.0.0, current version 1.0.0)   [DIFF]
+	/opt/X11/lib/libxcb.1.dylib (compatibility version 3.0.0, current version 3.0.0)       [DIFF]
+	/opt/X11/lib/libXau.6.dylib (compatibility version 7.0.0, current version 7.0.0)       [DIFF]
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1292.120.1)   [DIFF]
 ```
 
 比较奇怪的是同样是`/usr/lib/libSystem.B.dylib`，current version是有差异的，这可能是原因，不确定；
