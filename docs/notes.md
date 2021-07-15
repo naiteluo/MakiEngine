@@ -229,3 +229,6 @@ references:
 - [形象生动地说明为什么需要Memory Management](https://www.gamasutra.com/blogs/MichaelKissner/20151104/258271/Writing_a_Game_Engine_from_Scratch__Part_2_Memory.php)
 - [Memory Management part 1 of 3: The Allocator](http://allenchou.net/2013/05/memory-management-part-1-of-3-the-allocator/)
 
+### 如何在ide debug时watch一个array
+
+`(Allocator(*)[49]) m_pAllocators`
