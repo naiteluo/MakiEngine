@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "IApplication.hpp"
+#include "MemoryManager.hpp"
 
 using namespace Me;
 

@@ -28,6 +28,7 @@
 - `#pragma once` 用于防止header重复展开，等效于复杂的 `#ifndef __INTERFACE_H__`写法。
 - `nm` llvm symbol table dumper
 - `otool` the otool-compatible command line parser for llvm-objdump
+- `cmake` `add_definitions` 通过预编译指令，进行条件编译（clion能识别definition，进行语法解析）
 
 ## 创建窗体
 
@@ -85,10 +86,11 @@ glXQueryVersion result: 0
 Process finished with exit code 1
 ```
 
-刚开始cmakelists中配置如下，首先从`/url/local/{include,lib}`中获取xcb、x11相关头文件、及链接库；
-原希望从`/url/local/{include,lib}`中链接GL、GLU，还依赖`GL/glx.h`，但这里并没有找到GLX的头文件；
+刚开始cmakelists中配置如下，首先从`/url/local/{include,lib}`中获取xcb、x11相关头文件、及链接库； 原希望从`/url/local/{include,lib}`
+中链接GL、GLU，还依赖`GL/glx.h`，但这里并没有找到GLX的头文件；
 
-因为GLX是X Server的相关API，所以猜测在`/opt/X11/{include,lib}`中，于是从这里找到了`GL/*`相关完整头文件和链接库，从`/opt/X11`中获取相关lib的头文件和链接库，推测从/usr/local中链接不完整或者版本不对？注释掉`link_directories(/usr/local/lib)`，让链接过程从`/opt/X11/lib`中查找，即可正确运行。
+因为GLX是X Server的相关API，所以猜测在`/opt/X11/{include,lib}`中，于是从这里找到了`GL/*`相关完整头文件和链接库，从`/opt/X11`
+中获取相关lib的头文件和链接库，推测从/usr/local中链接不完整或者版本不对？注释掉`link_directories(/usr/local/lib)`，让链接过程从`/opt/X11/lib`中查找，即可正确运行。
 
 只从`/opt/X11`中获取相关头文件和链接库即可。
 
@@ -192,3 +194,38 @@ Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
 ```
 
 demo的结束dispose逻辑貌似有问题，不能正常地exit，暂时不处理
+
+### magic align func
+
+```shell
+#ifndef ALIGN
+#define ALIGN(x, a)         (((x) + ((a) - 1)) & ~((a) - 1))
+#endif
+```
+
+`Allocator.cpp`中定义了这么一个Macro，用途是高效地计算 `x` 对齐 `a * n` 的结果，仅 `a = 2 ^ n` 时有效，
+
+计算远离解析：
+
+需要得到一个对齐`a = 2^n`的结果，实际上期望结果 `r > a` 且 `n-1` bit 都是 `0`;
+
+`x` 可能小于等于 `a` 也可能大于 `a`，当 `x <= a` 时， `r` 是 `a-1` 进位后抹零；当 `x > a` 时，保证从右到左第 `n+ 1`位是`1`，剩余抹零即可; 不管`x`和`a`
+是什么大小关系，都只需要保证从右到左的第`n+1`位为`1`，右边剩余位抹零即可；例子：
+
+```
+x = 0b110110
+a = 0b1000
+r = 0b111000
+```
+
+references:
+
+- [Bit Twiddling Hacks](https://graphics.stanford.edu/~seander/bithacks.html)
+- [Matters Computational](https://www.jjj.de/fxt/fxtbook.pdf)
+- [位运算有什么奇技淫巧？](https://www.zhihu.com/question/38206659)
+
+### 内存管理的相关扩展阅读
+
+- [形象生动地说明为什么需要Memory Management](https://www.gamasutra.com/blogs/MichaelKissner/20151104/258271/Writing_a_Game_Engine_from_Scratch__Part_2_Memory.php)
+- [Memory Management part 1 of 3: The Allocator](http://allenchou.net/2013/05/memory-management-part-1-of-3-the-allocator/)
+
