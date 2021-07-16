@@ -23,13 +23,14 @@ project(MakiEngine)
 
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Common")
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")
-
+include_directories("${PROJECT_SOURCE_DIR}/RHI")
 IF (${APPLE})
     include_directories("${PROJECT_SOURCE_DIR}/Platform/Darwin")
 ENDIF (${APPLE})
 
 add_subdirectory(Framework)
 add_subdirectory(Platform)
+add_subdirectory(RHI)
 
 # ------------------------- Begin Generic CMake Variable Logging ------------------
 

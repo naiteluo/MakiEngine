@@ -5,7 +5,7 @@
 namespace Me {
     Interface IRuntimeModule {
     public:
-        virtual ~IRuntimeModule() {};
+        virtual ~IRuntimeModule() = default;;
 
         virtual int Initialize() = 0;
 
