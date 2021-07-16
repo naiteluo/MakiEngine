@@ -29,6 +29,8 @@
 - `nm` llvm symbol table dumper
 - `otool` the otool-compatible command line parser for llvm-objdump
 - `cmake` `add_definitions` 通过预编译指令，进行条件编译（clion能识别definition，进行语法解析）
+- `RHI` Rendering Hardware Interface. An abstraction layer (called RHI) above these platform-dependent apis, so it is able to use dx11 (soon dx12/vulkan) on Windows, opengl (soon vulkan) on linux, metal on mac, etc
+- `glad` [GL/GLES/EGL/GLX/WGL Loader-Generator based on the official specs.](https://github.com/Dav1dde/glad)
 
 ## 创建窗体
 
