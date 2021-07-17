@@ -2,19 +2,19 @@ include_directories(/opt/X11/include)
 link_directories(/opt/X11/lib)
 
 # prue xcb demo
-add_executable(hello_xcb
+add_executable(DarwinHelloXCB
         hello_xcb.cpp
         )
-target_link_libraries(hello_xcb
+target_link_libraries(DarwinHelloXCB
         xcb X11 X11-xcb
         dl
         )
 
 # x11 opengl demo
-add_executable(hello_opengl
+add_executable(DarwinHelloOpenGL
         hello_opengl.cpp
         )
-target_link_libraries(hello_opengl
+target_link_libraries(DarwinHelloOpenGL
         xcb X11 X11-xcb
         GL GLU
         dl

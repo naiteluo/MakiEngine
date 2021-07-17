@@ -30,6 +30,6 @@ set_directory_properties(
         ADDITIONAL_MAKE_CLEAN_FILES CrossProduct.o
 )
 
-add_executable(TEST_ISPC test/test.cpp)
-target_include_directories(TEST_ISPC PRIVATE include)
-target_link_libraries(TEST_ISPC GeomMath)
+add_executable(ISPC_TEST test/test.cpp)
+target_include_directories(ISPC_TEST PRIVATE include)
+target_link_libraries(ISPC_TEST GeomMath)
