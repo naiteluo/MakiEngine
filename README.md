@@ -10,3 +10,11 @@ build game engine from scratch
     cd ./External
     sh ./glad_generate.sh
     ```
+
+2. download ispc compiler
+   
+   ```shell
+   cd ./External
+   sh ./ispc_install.sh
+   ```
+
