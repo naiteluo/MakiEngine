@@ -37,3 +37,6 @@ cmake-build-*
 
 # .ide releated
 .idea
+
+# External
+External/ispc-*
