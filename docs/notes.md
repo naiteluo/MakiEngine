@@ -234,3 +234,40 @@ references:
 ### 如何在ide debug时watch一个array
 
 `(Allocator(*)[49]) m_pAllocators`
+
+### macOS下glad_glx相关错误
+
+以下代码出现`EXC_BAD_ACCESS`错误。
+
+```c++
+fb_configs = glXChooseFBConfig(m_pDisplay, default_screen, visual_attribs, &num_fb_configs);
+```
+
+解决方式，修改`glad_glx.h`在macOS中的引入gl库的来源：
+
+```c++
+static
+int open_gl(void) {
+#ifdef __APPLE__
+    static const char *NAMES[] = {
+        "/opt/X11/lib/libGL.1.dylib",    // 新增
+        "/opt/X11/lib/libGL.dylib",      // 新增
+        "../Frameworks/OpenGL.framework/OpenGL",
+        "/Library/Frameworks/OpenGL.framework/OpenGL",
+        "/System/Library/Frameworks/OpenGL.framework/OpenGL",
+        "/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL"
+    };
+#else
+    static const char *NAMES[] = {"libGL.so.1", "libGL.so"};
+#endif
+```
+
+glad使用`dlopen`加载动态库，系统中默认的OpenGL库不包含glx相关API，优先从X11中加载GL动态库
+
+参考：[从零开始手敲次世代游戏引擎（MacOS特别篇）](https://zhuanlan.zhihu.com/p/30721683)，另外原文中还用到了`nm`命令查看库中的API。
+
+### 引入ispc
+
+原文中采用直接编译的方式产出ispc可执行文件，由于编译依赖略麻烦，这里采用了直接下载released binary的方式获取ispc编译程序。
+
+新增了一个脚本，用于从官方地址下载ispc release包，并解压下载至对应目录。
