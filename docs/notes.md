@@ -271,3 +271,29 @@ glad使用`dlopen`加载动态库，系统中默认的OpenGL库不包含glx相�
 原文中采用直接编译的方式产出ispc可执行文件，由于编译依赖略麻烦，这里采用了直接下载released binary的方式获取ispc编译程序。
 
 新增了一个脚本，用于从官方地址下载ispc release包，并解压下载至对应目录。
+
+关于`GeomMath`的编译配置，以下用注释做注解
+
+```cmake
+# 定义目标产出库文件路径
+SET(GEOMMATH_LIB_FILE ${CMAKE_CURRENT_BINARY_DIR}/libGeomMath.a)
+# 自定义命令1：定义ISPC编译器路径
+SET(ISPC_COMPILER ${PROJECT_SOURCE_DIR}/External/ispc-release-darwin/bin/ispc)
+# 自定义命令1：定义ISPC编译命令入参
+SET(ISPC_OPTIONS --arch=x86-64 --target=host)
+# 自定义命令2：定义用于打包库文件的命令
+SET(LIBRARIAN_COMMAND ar)
+# 自定义命令2：定义打包库文件时的入参
+# 原入参还包含-o，但编译时报错，`man ar`查阅使用文档后发现， ar -r 的允许同时使用标志位是不包含o的
+# 单独运行ar命令尝试对中间产物进行打包，能产出预期`*.a`库文件
+SET(LIBRARIAN_OPTIONS -cr ${GEOMMATH_LIB_FILE})
+# 设置ISPC编译产出的头文件的目标路径
+SET(GEOMMATH_LIB_HEADER_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# 自定义编译命令，最终产出物为GEOMMATH_LIB_FILE；
+# 先使用ISPC_COMPILER编译`*.ispc`文件，同时产出对应的`*.o`及生产`*.h`文件
+# 将上一步产出的`*·o`文件打包成`*.a`库文件
+add_custom_command(OUTPUT ${GEOMMATH_LIB_FILE}
+        COMMAND ${ISPC_COMPILER} ${ISPC_OPTIONS} -o CrossProduct.o -I${CMAKE_CURRENT_SOURCE_DIR} -h ${CMAKE_CURRENT_SOURCE_DIR}/include/CrossProduct.h ${CMAKE_CURRENT_SOURCE_DIR}/ispc/CrossProduct.ispc
+        COMMAND ${LIBRARIAN_COMMAND} ${LIBRARIAN_OPTIONS} CrossProduct.o
+        )
+```
