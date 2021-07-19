@@ -276,7 +276,7 @@ int main(void) {
         }
     }
 
-    // todo what for?
+    // TODO: what for?
     XSync(display, False);
 
     XSetErrorHandler(oldHandler);

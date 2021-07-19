@@ -103,7 +103,7 @@ int Me::OpenGLApplication::Initialize() {
         return -1;
     }
 
-    // todo 这块还是有些不明白 fb_config 和 visual的概念和用途
+    // TODO: 这块还是有些不明白 fb_config 和 visual的概念和用途
     // pick the fb config/visual with the most samples per pixel
     {
         int best_fbc = -1, worst_fbc = -1, best_num_samp = -1, worst_num_samp = 999;
@@ -202,7 +202,7 @@ int Me::OpenGLApplication::Initialize() {
         }
     }
 
-    // todo what for?
+    // TODO: what for?
     XSync(m_pDisplay, False);
 
     XSetErrorHandler(oldHandler);

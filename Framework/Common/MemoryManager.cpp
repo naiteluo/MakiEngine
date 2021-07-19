@@ -16,9 +16,9 @@ namespace Me {
             704, 768, 832, 896, 960, 1024
     };
 
-    // todo why 2^13?
+    // TODO: why 2^13?
     static const uint32_t kPageSize = 8192;
-    // todo why alignment 4?
+    // TODO: why alignment 4?
     static const uint32_t kAlignment = 4;
 
     // number of elements in the block size array
