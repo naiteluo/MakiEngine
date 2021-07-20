@@ -29,7 +29,8 @@
 - `nm` llvm symbol table dumper
 - `otool` the otool-compatible command line parser for llvm-objdump
 - `cmake` `add_definitions` 通过预编译指令，进行条件编译（clion能识别definition，进行语法解析）
-- `RHI` Rendering Hardware Interface. An abstraction layer (called RHI) above these platform-dependent apis, so it is able to use dx11 (soon dx12/vulkan) on Windows, opengl (soon vulkan) on linux, metal on mac, etc
+- `RHI` Rendering Hardware Interface. An abstraction layer (called RHI) above these platform-dependent apis, so it is
+  able to use dx11 (soon dx12/vulkan) on Windows, opengl (soon vulkan) on linux, metal on mac, etc
 - `glad` [GL/GLES/EGL/GLX/WGL Loader-Generator based on the official specs.](https://github.com/Dav1dde/glad)
 
 ## 创建窗体
@@ -207,7 +208,7 @@ demo的结束dispose逻辑貌似有问题，不能正常地exit，暂时不处�
 
 `Allocator.cpp`中定义了这么一个Macro，用途是高效地计算 `x` 对齐 `a * n` 的结果，仅 `a = 2 ^ n` 时有效，
 
-计算远离解析：
+计算原理解析：
 
 需要得到一个对齐`a = 2^n`的结果，实际上期望结果 `r > a` 且 `n-1` bit 都是 `0`;
 
@@ -248,17 +249,20 @@ fb_configs = glXChooseFBConfig(m_pDisplay, default_screen, visual_attribs, &num_
 ```c++
 static
 int open_gl(void) {
-#ifdef __APPLE__
-    static const char *NAMES[] = {
-        "/opt/X11/lib/libGL.1.dylib",    // 新增
-        "/opt/X11/lib/libGL.dylib",      // 新增
-        "../Frameworks/OpenGL.framework/OpenGL",
-        "/Library/Frameworks/OpenGL.framework/OpenGL",
-        "/System/Library/Frameworks/OpenGL.framework/OpenGL",
-        "/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL"
-    };
+#ifdef
+__APPLE__
+static const char *NAMES[] = {
+"/opt/X11/lib/libGL.1.dylib",    // 新增
+"/opt/X11/lib/libGL.dylib",      // 新增
+"../Frameworks/OpenGL.framework/OpenGL",
+"/Library/Frameworks/OpenGL.framework/OpenGL",
+"/System/Library/Frameworks/OpenGL.framework/OpenGL",
+"/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL"
+};
 #else
-    static const char *NAMES[] = {"libGL.so.1", "libGL.so"};
+static const char *NAMES[] = {
+"libGL.so.1", "libGL.so"
+};
 #endif
 ```
 
@@ -303,3 +307,25 @@ add_custom_command(OUTPUT ${GEOMMATH_LIB_FILE}
 A union is a special class type that can hold only one of its non-static data members at a time.
 
 refer: https://en.cppreference.com/w/cpp/language/union
+
+### 解读类型定义的诀窍 & 数组引用
+
+> Read declarations from inside out, right to left, parenthesis group first
+
+Example:
+
+```c++
+    template<typename T, int SizeValue>
+int GetArrLength(T(&)[SizeValue]){
+return SizeValue;}
+```
+
+`T(&)[SizeValue]` is an unnamed parameter that is a reference to an array of size 'SizeValue' of type T. It accepts a reference to any array, where the type and size of the array are template parameters.
+
+- 定义数组引用，需要绑定数组的长度
+- 数组有绑定内存的长度，单位数据的长度也已知，所以编译器能推导出来数组的长度, `int arr[10]; int s = sizeof(arr)/sizeof(int); // s == 10`;
+- 引用会保留数组的所有属性，包含内存长度；而指针会退化丢失内存长度；
+
+refer：
+
+- [how-does-this-size-of-array-template-function-work](https://stackoverflow.com/questions/3368883/how-does-this-size-of-array-template-function-work)
