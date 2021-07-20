@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.19)
 
 IF (${UNIX} OR ${APPLE})
     set(CMAKE_C_COMPILER "clang")
@@ -7,7 +7,7 @@ IF (${UNIX} OR ${APPLE})
     set(CMAKE_CXX_COMPILER "clang++")
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
-    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 14)
 ELSEIF (${WIN32})
     # nothing yet
 ENDIF (${UNIX} OR ${APPLE})
@@ -20,6 +20,30 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O4 -DNDEBUG")
 
 project(MakiEngine)
+
+# ------ gtest setup start ------
+include(FetchContent)
+FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+)
+FetchContent_MakeAvailable(googletest)
+enable_testing()
+include(GoogleTest)
+
+macro(me_add_test TESTNAME)
+    add_executable(${TESTNAME} ${ARGN})
+    target_link_libraries(${TESTNAME} gtest gtest_main)
+    gtest_discover_tests(${TESTNAME}
+            # set a working directory so your project root so that you can find test data via paths relative to the project root
+            WORKING_DIRECTORY ${PROJECT_DIR}
+            PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
+            )
+    add_test(${TESTNAME} ${TESTNAME})
+    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+endmacro()
+
+# ------ gtest setup end ------
 
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Common")
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")

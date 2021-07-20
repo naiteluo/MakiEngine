@@ -297,3 +297,9 @@ add_custom_command(OUTPUT ${GEOMMATH_LIB_FILE}
         COMMAND ${LIBRARIAN_COMMAND} ${LIBRARIAN_OPTIONS} CrossProduct.o
         )
 ```
+
+### c++ union?
+
+A union is a special class type that can hold only one of its non-static data members at a time.
+
+refer: https://en.cppreference.com/w/cpp/language/union

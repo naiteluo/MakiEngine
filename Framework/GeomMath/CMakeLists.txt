@@ -1,22 +1,18 @@
+# TODO: add windows's configs
 SET(GEOMMATH_LIB_FILE ${CMAKE_CURRENT_BINARY_DIR}/libGeomMath.a)
-SET(ISPC_COMPILER ${PROJECT_SOURCE_DIR}/External/ispc-release-darwin/bin/ispc)
+SET(ISPC_COMPILER ispc)
+SET(ISPC_COMPILER_PATH ${PROJECT_SOURCE_DIR}/External/ispc-release-darwin/bin/)
 SET(ISPC_OPTIONS --arch=x86-64 --target=host)
-SET(LIBRARIAN_COMMAND ar)
-SET(LIBRARIAN_OPTIONS -cr ${GEOMMATH_LIB_FILE})
+SET(LIBRARIAN_COMMAND ar -cr ${GEOMMATH_LIB_FILE})
+
+# cmake now officially support ispc
+# TODO: update ispc configs in this file in modern-cmake's way.
+
 
 SET(GEOMMATH_LIB_HEADER_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_custom_command(OUTPUT ${GEOMMATH_LIB_FILE}
-        COMMAND ${ISPC_COMPILER} ${ISPC_OPTIONS} -o CrossProduct.o -I${CMAKE_CURRENT_SOURCE_DIR} -h ${CMAKE_CURRENT_SOURCE_DIR}/include/CrossProduct.h ${CMAKE_CURRENT_SOURCE_DIR}/ispc/CrossProduct.ispc
-        COMMAND ${LIBRARIAN_COMMAND} ${LIBRARIAN_OPTIONS} CrossProduct.o
-        )
-
-add_custom_target(ISPC
-        DEPENDS ${GEOMMATH_LIB_FILE}
-        )
-
 add_library(GeomMath STATIC IMPORTED GLOBAL)
-add_dependencies(GeomMath ISPC)
+add_dependencies(GeomMath GeomMathLib)
 
 set_target_properties(GeomMath
         PROPERTIES
@@ -24,11 +20,5 @@ set_target_properties(GeomMath
         INTERFACE_INCLUDE_DIRECTORIES ${GEOMMATH_LIB_HEADER_FOLDER}
         )
 
-set_directory_properties(
-        PROPERTIES
-        ADDITIONAL_MAKE_CLEAN_FILES CrossProduct.o
-)
-
-add_executable(ISPC_TEST test/test.cpp)
-target_include_directories(ISPC_TEST PRIVATE include)
-target_link_libraries(ISPC_TEST GeomMath)
+add_subdirectory(ispc)
+add_subdirectory(test)

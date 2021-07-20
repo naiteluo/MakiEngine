@@ -1,7 +1,15 @@
 #pragma once
 
-#include <math.h>
+#include <cmath>
+#include <iostream>
 #include "include/CrossProduct.h"
+#include "include/DotProduct.h"
+#include "include/MulByElement.h"
+#include "include/Normalize.h"
+#include "include/Transform.h"
+#include "include/Transpose.h"
+#include "include/AddByElement.h"
+#include "include/SubByElement.h"
 
 #ifndef PI
 #define PI 3.14159265358979323846f
@@ -12,6 +20,12 @@
 #endif
 
 namespace Me {
+    template<typename T, size_t SizeOfArray>
+    constexpr size_t countof(T (&array)[SizeOfArray]) { return SizeOfArray; }
+
+    template<typename T, size_t RowSize, size_t ColSize>
+    constexpr size_t countof(T (&array)[RowSize][ColSize]) { return RowSize * ColSize; }
+
     template<typename T, int ... Indexes>
     class swizzle {
         float v[sizeof...(Indexes)];
@@ -32,122 +46,255 @@ namespace Me {
 
     };
 
-    typedef struct Vector2Type {
+    template<typename T>
+    struct Vector2Type {
         union {
-            float data[2];
+            T data[2];
             struct {
-                float x, y;
+                T x, y;
             };
             struct {
-                float r, g;
+                T r, g;
             };
             struct {
-                float u, v;
+                T u, v;
             };
-            swizzle<Vector2Type, 0, 1> xy;
-            swizzle<Vector2Type, 1, 0> yx;
+            swizzle<Vector2Type<T>, 0, 1> xy;
+            swizzle<Vector2Type<T>, 1, 0> yx;
         };
 
-        Vector2Type() {};
+        Vector2Type<T>() {};
 
-        Vector2Type(float _v) : x(_v), y(_v) {};
+        Vector2Type<T>(const T &_v) : x(_v), y(_v) {};
 
-        Vector2Type(float _x, float _y) : x(_x), y(_y) {};
-    } Vector2Type;
+        Vector2Type<T>(const T &_x, const T &_y) : x(_x), y(_y) {};
 
-    typedef struct Vector3Type {
+        operator float *() { return data; };
+
+        operator const float *() const { return static_cast<const float *>(data); };
+    };
+
+    typedef Vector2Type<float> Vector2f;
+
+    template<typename T>
+    struct Vector3Type {
         union {
-            float data[3];
+            T data[3];
             struct {
-                float x, y, z;
+                T x, y, z;
             };
             struct {
-                float r, g, b;
+                T r, g, b;
             };
-            swizzle<Vector2Type, 0, 1> xy;
-            swizzle<Vector2Type, 1, 0> yx;
-            swizzle<Vector2Type, 0, 2> xz;
-            swizzle<Vector2Type, 2, 0> zx;
-            swizzle<Vector2Type, 1, 2> yz;
-            swizzle<Vector2Type, 2, 1> zy;
-            swizzle<Vector3Type, 0, 1, 2> xyz;
-            swizzle<Vector3Type, 1, 0, 2> yxz;
-            swizzle<Vector3Type, 0, 2, 1> xzy;
-            swizzle<Vector3Type, 2, 0, 1> zxy;
-            swizzle<Vector3Type, 1, 2, 0> yzx;
-            swizzle<Vector3Type, 2, 1, 0> zyx;
+            swizzle<Vector2Type<T>, 0, 1> xy;
+            swizzle<Vector2Type<T>, 1, 0> yx;
+            swizzle<Vector2Type<T>, 0, 2> xz;
+            swizzle<Vector2Type<T>, 2, 0> zx;
+            swizzle<Vector2Type<T>, 1, 2> yz;
+            swizzle<Vector2Type<T>, 2, 1> zy;
+            swizzle<Vector3Type<T>, 0, 1, 2> xyz;
+            swizzle<Vector3Type<T>, 1, 0, 2> yxz;
+            swizzle<Vector3Type<T>, 0, 2, 1> xzy;
+            swizzle<Vector3Type<T>, 2, 0, 1> zxy;
+            swizzle<Vector3Type<T>, 1, 2, 0> yzx;
+            swizzle<Vector3Type<T>, 2, 1, 0> zyx;
         };
 
-        Vector3Type() {};
+        Vector3Type<T>() {};
 
-        Vector3Type(float _v) : x(_v), y(_v), z(_v) {};
+        Vector3Type<T>(const T &_v) : x(_v), y(_v), z(_v) {};
 
-        Vector3Type(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {};
-    } Vector3Type;
+        Vector3Type<T>(const T &_x, const T &_y, const T &_z) : x(_x), y(_y), z(_z) {};
 
-    typedef struct Vector4Type {
+        operator float *() { return data; };
+
+        operator const float *() const { return static_cast<const float *>(data); };
+    };
+
+    typedef Vector3Type<float> Vector3f;
+
+    template<typename T>
+    struct Vector4Type {
         union {
-            float data[4];
+            T data[4];
             struct {
-                float x, y, z, w;
+                T x, y, z, w;
             };
             struct {
-                float r, g, b, a;
+                T r, g, b, a;
             };
-            Vector3Type xyz;
-            swizzle<Vector3Type, 0, 2, 1> xzy;
-            swizzle<Vector3Type, 1, 0, 2> yxz;
-            swizzle<Vector3Type, 1, 2, 0> yzx;
-            swizzle<Vector3Type, 2, 0, 1> zxy;
-            swizzle<Vector3Type, 2, 1, 0> zyx;
+            swizzle<Vector3Type<T>, 0, 2, 1> xzy;
+            swizzle<Vector3Type<T>, 1, 0, 2> yxz;
+            swizzle<Vector3Type<T>, 1, 2, 0> yzx;
+            swizzle<Vector3Type<T>, 2, 0, 1> zxy;
+            swizzle<Vector3Type<T>, 2, 1, 0> zyx;
         };
 
-        Vector4Type() {};
+        Vector4Type<T>() {};
 
-        Vector4Type(float _v) : x(_v), y(_v), z(_v), w(_v) {};
+        Vector4Type<T>(const T &_v) : x(_v), y(_v), z(_v), w(_v) {};
 
-        Vector4Type(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w) {};
+        Vector4Type<T>(const T &_x, const T &_y, const T &_z, const T &_w) : x(_x), y(_y), z(_z), w(_w) {};
 
-        operator Vector3Type() { return Vector3Type(x, y, z); };
-    } Vector4Type;
+        Vector4Type<T>(const Vector3Type<T> &v3) : x(v3.x), y(v3.y), z(v3.z), w(1.0f) {};
 
-    typedef struct Matrix3X3 {
+        Vector4Type<T>(const Vector3Type<T> &v3, const T &_w) : x(v3.x), y(v3.y), z(v3.z), w(_w) {};
+
+        operator float *() { return data; };
+
+        operator const float *() const { return static_cast<const float *>(data); };
+    };
+
+    typedef Vector4Type<float> Vector4f;
+
+    template<template<typename> class TT, typename T>
+    std::ostream &operator<<(std::ostream &out, TT<T> vector) {
+        out << "( ";
+        for (int i = 0; i < countof(vector.data); i++) {
+            out << vector.data[i] << ((i == countof(vector.data) - 1) ? ' ' : ',');
+        }
+        out << ")\n";
+
+        return out;
+    }
+
+    template<template<typename> class TT, typename T>
+    void VectorAdd(TT<T> &result, const TT<T> &vec1, const TT<T> &vec2) {
+        ispc::AddByElement(vec1, vec2, result, countof(result.data));
+    }
+
+    template<template<typename> class TT, typename T>
+    TT<T> operator+(const TT<T> &vec1, const TT<T> &vec2) {
+        TT<T> result;
+        VectorAdd(result, vec1, vec2);
+
+        return result;
+    }
+
+    template<template<typename> class TT, typename T>
+    void VectorSub(TT<T> &result, const TT<T> &vec1, const TT<T> &vec2) {
+        ispc::SubByElement(vec1, vec2, result, countof(result.data));
+    }
+
+    template<template<typename> class TT, typename T>
+    TT<T> operator-(const TT<T> &vec1, const TT<T> &vec2) {
+        TT<T> result;
+        VectorSub(result, vec1, vec2);
+
+        return result;
+    }
+
+    template<template<typename> class TT, typename T>
+    inline void CrossProduct(TT<T> &result, const TT<T> &vec1, const TT<T> &vec2) {
+        ispc::CrossProduct(vec1, vec2, result);
+    }
+
+    template<template<typename> class TT, typename T>
+    inline void DotProduct(T &result, const TT<T> &vec1, const TT<T> &vec2) {
+        ispc::DotProduct(vec1, vec2, &result, countof(vec1.data));
+    }
+
+    template<typename T>
+    inline void MulByElement(T &result, const T &a, const T &b) {
+        ispc::MulByElement(a, b, result, countof(result.data));
+    }
+
+    // Matrix
+
+    template<typename T, int ROWS, int COLS>
+    struct Matrix {
         union {
-            float data[9];
-            struct {
-                Vector3Type row[3];
-            };
+            T data[ROWS][COLS];
         };
 
-        float &operator[](int index) {
-            return data[index];
+        auto operator[](int row_index) {
+            return data[row_index];
         }
 
-        float operator[](int index) const {
-            return data[index];
+        const auto operator[](int row_index) const {
+            return data[row_index];
         }
 
-    } Matrix3X3;
+        operator float *() { return &data[0][0]; };
 
-    typedef struct Matrix4X4 {
-        union {
-            float data[16];
-            struct {
-                Vector4Type row[4];
-            };
-        };
+        operator const float *() const { return static_cast<const float *>(&data[0][0]); };
+    };
 
-        float &operator[](int index) {
-            return data[index];
+    typedef Matrix<float, 4, 4> Matrix4X4f;
+
+    template<typename T, int ROWS, int COLS>
+    std::ostream &operator<<(std::ostream &out, Matrix<T, ROWS, COLS> matrix) {
+        out << std::endl;
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLS; j++) {
+                out << matrix.data[i][j] << ((j == COLS - 1) ? '\n' : ',');
+            }
+        }
+        out << std::endl;
+
+        return out;
+    }
+
+    template<typename T, int ROWS, int COLS>
+    void MatrixAdd(Matrix<T, ROWS, COLS> &result, const Matrix<T, ROWS, COLS> &matrix1,
+                   const Matrix<T, ROWS, COLS> &matrix2) {
+        ispc::AddByElement(matrix1, matrix2, result, countof(result.data));
+    }
+
+    template<typename T, int ROWS, int COLS>
+    Matrix<T, ROWS, COLS> operator+(const Matrix<T, ROWS, COLS> &matrix1, const Matrix<T, ROWS, COLS> &matrix2) {
+        Matrix<T, ROWS, COLS> result;
+        MatrixAdd(result, matrix1, matrix2);
+
+        return result;
+    }
+
+    template<typename T, int ROWS, int COLS>
+    void MatrixSub(Matrix<T, ROWS, COLS> &result, const Matrix<T, ROWS, COLS> &matrix1,
+                   const Matrix<T, ROWS, COLS> &matrix2) {
+        ispc::SubByElement(matrix1, matrix2, result, countof(result.data));
+    }
+
+    template<typename T, int ROWS, int COLS>
+    Matrix<T, ROWS, COLS> operator-(const Matrix<T, ROWS, COLS> &matrix1, const Matrix<T, ROWS, COLS> &matrix2) {
+        Matrix<T, ROWS, COLS> result;
+        MatrixSub(result, matrix1, matrix2);
+
+        return result;
+    }
+
+    template<typename T, int Da, int Db, int Dc>
+    void MatrixMultiply(Matrix<T, Da, Dc> &result, const Matrix<T, Da, Db> &matrix1, const Matrix<T, Dc, Db> &matrix2) {
+        Matrix<T, Dc, Db> matrix2_transpose;
+        Transpose(matrix2_transpose, matrix2);
+        for (int i = 0; i < Da; i++) {
+            for (int j = 0; j < Dc; j++) {
+                ispc::DotProduct(matrix1[i], matrix2_transpose[j], &result[i][j], Db);
+            }
         }
 
-        float operator[](int index) const {
-            return data[index];
-        }
+        return;
+    }
 
-    } Matrix4X4;
+    template<typename T, int ROWS, int COLS>
+    Matrix<T, ROWS, COLS> operator*(const Matrix<T, ROWS, COLS> &matrix1, const Matrix<T, ROWS, COLS> &matrix2) {
+        Matrix<T, ROWS, COLS> result;
+        MatrixMultiply(result, matrix1, matrix2);
 
-    void MatrixRotationYawPitchRoll(Matrix4X4 &matrix, const float yaw, const float pitch, const float roll) {
+        return result;
+    }
+
+    template<template<typename, int, int> class TT, typename T, int ROWS, int COLS>
+    inline void Transpose(TT<T, ROWS, COLS> &result, const TT<T, ROWS, COLS> &matrix1) {
+        ispc::Transpose(matrix1, result, ROWS, COLS);
+    }
+
+    template<typename T>
+    inline void Normalize(T &result) {
+        ispc::Normalize(result, countof(result.data));
+    }
+
+    void MatrixRotationYawPitchRoll(Matrix4X4f &matrix, const float yaw, const float pitch, const float roll) {
         float cYaw, cPitch, cRoll, sYaw, sPitch, sRoll;
 
 
@@ -161,266 +308,149 @@ namespace Me {
         sRoll = sinf(roll);
 
         // Calculate the yaw, pitch, roll rotation matrix.
-        matrix[0] = (cRoll * cYaw) + (sRoll * sPitch * sYaw);
-        matrix[1] = (sRoll * cPitch);
-        matrix[2] = (cRoll * -sYaw) + (sRoll * sPitch * cYaw);
+        Matrix4X4f tmp = {{{
+                                   {(cRoll * cYaw) + (sRoll * sPitch * sYaw), (sRoll * cPitch),
+                                           (cRoll * -sYaw) + (sRoll * sPitch * cYaw), 0.0f},
+                                   {(-sRoll * cYaw) + (cRoll * sPitch * sYaw), (cRoll * cPitch),
+                                           (sRoll * sYaw) + (cRoll * sPitch * cYaw), 0.0f},
+                                   {(cPitch * sYaw), -sPitch, (cPitch * cYaw), 0.0f},
+                                   {0.0f, 0.0f, 0.0f, 1.0f}
+                           }}};
 
-        matrix[3] = (-sRoll * cYaw) + (cRoll * sPitch * sYaw);
-        matrix[4] = (cRoll * cPitch);
-        matrix[5] = (sRoll * sYaw) + (cRoll * sPitch * cYaw);
-
-        matrix[6] = (cPitch * sYaw);
-        matrix[7] = -sPitch;
-        matrix[8] = (cPitch * cYaw);
-
-        return;
-    }
-
-    void TransformCoord(Vector3Type &vector, const Matrix4X4 &matrix) {
-        float x, y, z;
-
-
-        // Transform the vector by the 3x3 matrix.
-        x = (vector.x * matrix[0]) + (vector.y * matrix[3]) + (vector.z * matrix[6]);
-        y = (vector.x * matrix[1]) + (vector.y * matrix[4]) + (vector.z * matrix[7]);
-        z = (vector.x * matrix[2]) + (vector.y * matrix[5]) + (vector.z * matrix[8]);
-
-        // Store the result in the reference.
-        vector.x = x;
-        vector.y = y;
-        vector.z = z;
+        matrix = tmp;
 
         return;
     }
 
-    void
-    BuildViewMatrix(const Vector3Type position, const Vector3Type lookAt, const Vector3Type up, Matrix4X4 &result) {
-        Vector3Type zAxis, xAxis, yAxis;
-        float length, result1, result2, result3;
+    void TransformCoord(Vector3f &vector, const Matrix4X4f &matrix) {
+        ispc::Transform(vector, matrix);
+    }
 
+    void Transform(Vector4f &vector, const Matrix4X4f &matrix) {
+        ispc::Transform(vector, matrix);
 
-        // zAxis = normal(lookAt - position)
-        zAxis.x = lookAt.x - position.x;
-        zAxis.y = lookAt.y - position.y;
-        zAxis.z = lookAt.z - position.z;
-        length = sqrt((zAxis.x * zAxis.x) + (zAxis.y * zAxis.y) + (zAxis.z * zAxis.z));
-        zAxis.x = zAxis.x / length;
-        zAxis.y = zAxis.y / length;
-        zAxis.z = zAxis.z / length;
+        return;
+    }
 
-        // xAxis = normal(cross(up, zAxis))
-        xAxis.x = (up.y * zAxis.z) - (up.z * zAxis.y);
-        xAxis.y = (up.z * zAxis.x) - (up.x * zAxis.z);
-        xAxis.z = (up.x * zAxis.y) - (up.y * zAxis.x);
-        length = sqrt((xAxis.x * xAxis.x) + (xAxis.y * xAxis.y) + (xAxis.z * xAxis.z));
-        xAxis.x = xAxis.x / length;
-        xAxis.y = xAxis.y / length;
-        xAxis.z = xAxis.z / length;
+    void BuildViewMatrix(Matrix4X4f &result, const Vector3f position, const Vector3f lookAt, const Vector3f up) {
+        Vector3f zAxis, xAxis, yAxis;
+        float result1, result2, result3;
 
-        // yAxis = cross(zAxis, xAxis)
-        yAxis.x = (zAxis.y * xAxis.z) - (zAxis.z * xAxis.y);
-        yAxis.y = (zAxis.z * xAxis.x) - (zAxis.x * xAxis.z);
-        yAxis.z = (zAxis.x * xAxis.y) - (zAxis.y * xAxis.x);
+        zAxis = lookAt - position;
+        Normalize(zAxis);
 
-        // -dot(xAxis, position)
-        result1 = ((xAxis.x * position.x) + (xAxis.y * position.y) + (xAxis.z * position.z)) * -1.0f;
+        CrossProduct(xAxis, up, zAxis);
+        Normalize(xAxis);
 
-        // -dot(yaxis, eye)
-        result2 = ((yAxis.x * position.x) + (yAxis.y * position.y) + (yAxis.z * position.z)) * -1.0f;
+        CrossProduct(yAxis, zAxis, xAxis);
 
-        // -dot(zaxis, eye)
-        result3 = ((zAxis.x * position.x) + (zAxis.y * position.y) + (zAxis.z * position.z)) * -1.0f;
+        DotProduct(result1, xAxis, position);
+        result1 = -result1;
+
+        DotProduct(result2, yAxis, position);
+        result2 = -result2;
+
+        DotProduct(result3, zAxis, position);
+        result3 = -result3;
 
         // Set the computed values in the view matrix.
-        result[0] = xAxis.x;
-        result[1] = yAxis.x;
-        result[2] = zAxis.x;
-        result[3] = 0.0f;
+        Matrix4X4f tmp = {{{
+                                   {xAxis.x, yAxis.x, zAxis.x, 0.0f},
+                                   {xAxis.y, yAxis.y, zAxis.y, 0.0f},
+                                   {xAxis.z, yAxis.z, zAxis.z, 0.0f},
+                                   {result1, result2, result3, 1.0f}
+                           }}};
 
-        result[4] = xAxis.y;
-        result[5] = yAxis.y;
-        result[6] = zAxis.y;
-        result[7] = 0.0f;
-
-        result[8] = xAxis.z;
-        result[9] = yAxis.z;
-        result[10] = zAxis.z;
-        result[11] = 0.0f;
-
-        result[12] = result1;
-        result[13] = result2;
-        result[14] = result3;
-        result[15] = 1.0f;
+        result = tmp;
     }
 
-    void BuildIdentityMatrix(Matrix4X4 &matrix) {
-        matrix[0] = 1.0f;
-        matrix[1] = 0.0f;
-        matrix[2] = 0.0f;
-        matrix[3] = 0.0f;
+    void BuildIdentityMatrix(Matrix4X4f &matrix) {
+        Matrix4X4f identity = {{{
+                                        {1.0f, 0.0f, 0.0f, 0.0f},
+                                        {0.0f, 1.0f, 0.0f, 0.0f},
+                                        {0.0f, 0.0f, 1.0f, 0.0f},
+                                        {0.0f, 0.0f, 0.0f, 1.0f}
+                                }}};
 
-        matrix[4] = 0.0f;
-        matrix[5] = 1.0f;
-        matrix[6] = 0.0f;
-        matrix[7] = 0.0f;
-
-        matrix[8] = 0.0f;
-        matrix[9] = 0.0f;
-        matrix[10] = 1.0f;
-        matrix[11] = 0.0f;
-
-        matrix[12] = 0.0f;
-        matrix[13] = 0.0f;
-        matrix[14] = 0.0f;
-        matrix[15] = 1.0f;
+        matrix = identity;
 
         return;
     }
 
 
-    void BuildPerspectiveFovLHMatrix(Matrix4X4 &matrix, const float fieldOfView, const float screenAspect,
+    void BuildPerspectiveFovLHMatrix(Matrix4X4f &matrix, const float fieldOfView, const float screenAspect,
                                      const float screenNear, const float screenDepth) {
-        matrix[0] = 1.0f / (screenAspect * tan(fieldOfView * 0.5f));
-        matrix[1] = 0.0f;
-        matrix[2] = 0.0f;
-        matrix[3] = 0.0f;
+        Matrix4X4f perspective = {{{
+                                           {1.0f / (screenAspect * tanf(fieldOfView * 0.5f)), 0.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f / tanf(fieldOfView * 0.5f), 0.0f, 0.0f},
+                                           {0.0f, 0.0f, screenDepth / (screenDepth - screenNear), 1.0f},
+                                           {0.0f, 0.0f, (-screenNear * screenDepth) / (screenDepth - screenNear), 0.0f}
+                                   }}};
 
-        matrix[4] = 0.0f;
-        matrix[5] = 1.0f / tan(fieldOfView * 0.5f);
-        matrix[6] = 0.0f;
-        matrix[7] = 0.0f;
-
-        matrix[8] = 0.0f;
-        matrix[9] = 0.0f;
-        matrix[10] = screenDepth / (screenDepth - screenNear);
-        matrix[11] = 1.0f;
-
-        matrix[12] = 0.0f;
-        matrix[13] = 0.0f;
-        matrix[14] = (-screenNear * screenDepth) / (screenDepth - screenNear);
-        matrix[15] = 0.0f;
+        matrix = perspective;
 
         return;
     }
 
 
-    void MatrixRotationY(Matrix4X4 &matrix, const float angle) {
-        matrix[0] = cosf(angle);
-        matrix[1] = 0.0f;
-        matrix[2] = -sinf(angle);
-        matrix[3] = 0.0f;
+    void MatrixTranslation(Matrix4X4f &matrix, const float x, const float y, const float z) {
+        Matrix4X4f translation = {{{
+                                           {1.0f, 0.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f, 0.0f, 0.0f},
+                                           {0.0f, 0.0f, 1.0f, 0.0f},
+                                           {x, y, z, 1.0f}
+                                   }}};
 
-        matrix[4] = 0.0f;
-        matrix[5] = 1.0f;
-        matrix[6] = 0.0f;
-        matrix[7] = 0.0f;
+        matrix = translation;
 
-        matrix[8] = sinf(angle);
-        matrix[9] = 0.0f;
-        matrix[10] = cosf(angle);
-        matrix[11] = 0.0f;
+        return;
+    }
 
-        matrix[12] = 0.0f;
-        matrix[13] = 0.0f;
-        matrix[14] = 0.0f;
-        matrix[15] = 1.0f;
+    void MatrixRotationX(Matrix4X4f &matrix, const float angle) {
+        float c = cosf(angle), s = sinf(angle);
+
+        Matrix4X4f rotation = {{{
+                                        {1.0f, 0.0f, 0.0f, 0.0f},
+                                        {0.0f, c, s, 0.0f},
+                                        {0.0f, -s, c, 0.0f},
+                                        {0.0f, 0.0f, 0.0f, 1.0f},
+                                }}};
+
+        matrix = rotation;
+
+        return;
+    }
+
+    void MatrixRotationY(Matrix4X4f &matrix, const float angle) {
+        float c = cosf(angle), s = sinf(angle);
+
+        Matrix4X4f rotation = {{{
+                                        {c, 0.0f, -s, 0.0f},
+                                        {0.0f, 1.0f, 0.0f, 0.0f},
+                                        {s, 0.0f, c, 0.0f},
+                                        {0.0f, 0.0f, 0.0f, 1.0f},
+                                }}};
+
+        matrix = rotation;
 
         return;
     }
 
 
-    void MatrixTranslation(Matrix4X4 &matrix, const float x, const float y, const float z) {
-        matrix[0] = 1.0f;
-        matrix[1] = 0.0f;
-        matrix[2] = 0.0f;
-        matrix[3] = 0.0f;
+    void MatrixRotationZ(Matrix4X4f &matrix, const float angle) {
+        float c = cosf(angle), s = sinf(angle);
 
-        matrix[4] = 0.0f;
-        matrix[5] = 1.0f;
-        matrix[6] = 0.0f;
-        matrix[7] = 0.0f;
+        Matrix4X4f rotation = {{{
+                                        {c, s, 0.0f, 0.0f},
+                                        {-s, c, 0.0f, 0.0f},
+                                        {0.0f, 0.0f, 1.0f, 0.0f},
+                                        {0.0f, 0.0f, 0.0f, 1.0f}
+                                }}};
 
-        matrix[8] = 0.0f;
-        matrix[9] = 0.0f;
-        matrix[10] = 1.0f;
-        matrix[11] = 0.0f;
-
-        matrix[12] = x;
-        matrix[13] = y;
-        matrix[14] = z;
-        matrix[15] = 1.0f;
+        matrix = rotation;
 
         return;
     }
 
-
-    void MatrixRotationZ(Matrix4X4 &matrix, const float angle) {
-        matrix[0] = cosf(angle);
-        matrix[1] = -sinf(angle);
-        matrix[2] = 0.0f;
-        matrix[3] = 0.0f;
-
-        matrix[4] = sinf(angle);
-        matrix[5] = cosf(angle);
-        matrix[6] = 0.0f;
-        matrix[7] = 0.0f;
-
-        matrix[8] = 0.0f;
-        matrix[9] = 0.0f;
-        matrix[10] = 1.0f;
-        matrix[11] = 0.0f;
-
-        matrix[12] = 0.0f;
-        matrix[13] = 0.0f;
-        matrix[14] = 0.0f;
-        matrix[15] = 1.0f;
-
-        return;
-    }
-
-
-    void MatrixMultiply(Matrix4X4 &result, const Matrix4X4 &matrix1, const Matrix4X4 &matrix2) {
-        result[0] = (matrix1[0] * matrix2[0]) + (matrix1[1] * matrix2[4]) + (matrix1[2] * matrix2[8]) +
-                    (matrix1[3] * matrix2[12]);
-        result[1] = (matrix1[0] * matrix2[1]) + (matrix1[1] * matrix2[5]) + (matrix1[2] * matrix2[9]) +
-                    (matrix1[3] * matrix2[13]);
-        result[2] = (matrix1[0] * matrix2[2]) + (matrix1[1] * matrix2[6]) + (matrix1[2] * matrix2[10]) +
-                    (matrix1[3] * matrix2[14]);
-        result[3] = (matrix1[0] * matrix2[3]) + (matrix1[1] * matrix2[7]) + (matrix1[2] * matrix2[11]) +
-                    (matrix1[3] * matrix2[15]);
-
-        result[4] = (matrix1[4] * matrix2[0]) + (matrix1[5] * matrix2[4]) + (matrix1[6] * matrix2[8]) +
-                    (matrix1[7] * matrix2[12]);
-        result[5] = (matrix1[4] * matrix2[1]) + (matrix1[5] * matrix2[5]) + (matrix1[6] * matrix2[9]) +
-                    (matrix1[7] * matrix2[13]);
-        result[6] = (matrix1[4] * matrix2[2]) + (matrix1[5] * matrix2[6]) + (matrix1[6] * matrix2[10]) +
-                    (matrix1[7] * matrix2[14]);
-        result[7] = (matrix1[4] * matrix2[3]) + (matrix1[5] * matrix2[7]) + (matrix1[6] * matrix2[11]) +
-                    (matrix1[7] * matrix2[15]);
-
-        result[8] = (matrix1[8] * matrix2[0]) + (matrix1[9] * matrix2[4]) + (matrix1[10] * matrix2[8]) +
-                    (matrix1[11] * matrix2[12]);
-        result[9] = (matrix1[8] * matrix2[1]) + (matrix1[9] * matrix2[5]) + (matrix1[10] * matrix2[9]) +
-                    (matrix1[11] * matrix2[13]);
-        result[10] = (matrix1[8] * matrix2[2]) + (matrix1[9] * matrix2[6]) + (matrix1[10] * matrix2[10]) +
-                     (matrix1[11] * matrix2[14]);
-        result[11] = (matrix1[8] * matrix2[3]) + (matrix1[9] * matrix2[7]) + (matrix1[10] * matrix2[11]) +
-                     (matrix1[11] * matrix2[15]);
-
-        result[12] = (matrix1[12] * matrix2[0]) + (matrix1[13] * matrix2[4]) + (matrix1[14] * matrix2[8]) +
-                     (matrix1[15] * matrix2[12]);
-        result[13] = (matrix1[12] * matrix2[1]) + (matrix1[13] * matrix2[5]) + (matrix1[14] * matrix2[9]) +
-                     (matrix1[15] * matrix2[13]);
-        result[14] = (matrix1[12] * matrix2[2]) + (matrix1[13] * matrix2[6]) + (matrix1[14] * matrix2[10]) +
-                     (matrix1[15] * matrix2[14]);
-        result[15] = (matrix1[12] * matrix2[3]) + (matrix1[13] * matrix2[7]) + (matrix1[14] * matrix2[11]) +
-                     (matrix1[15] * matrix2[15]);
-
-        return;
-    }
-
-    void CrossProduct(Matrix3X3 &result, const Matrix3X3 matrix1, const Matrix3X3 matrix2) {
-        ispc::CrossProduct(matrix1.data, matrix2.data, result.data);
-    }
 }
 
