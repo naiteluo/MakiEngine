@@ -21,7 +21,12 @@
 - [从零开始手敲次世代游戏引擎（十五）](https://zhuanlan.zhihu.com/p/28809434) DX12（暂无运行环境，先跳过）
 - [从零开始手敲次世代游戏引擎（十六）](https://zhuanlan.zhihu.com/p/28981044) draw more （暂无运行环境，先跳过）
 - [从零开始手敲次世代游戏引擎（十七）](https://zhuanlan.zhihu.com/p/29017530) 进行设计思路梳理
-- [从零开始手敲次世代游戏引擎（十八）](https://zhuanlan.zhihu.com/p/29023579) 内存管理相关梳理及实现
+- [从零开始手敲次世代游戏引擎（十八）](https://zhuanlan.zhihu.com/p/29023579) 内存管理相关梳理及Allocator实现
+- [从零开始手敲次世代引擎（十九）](https://zhuanlan.zhihu.com/p/29092979) 内存管理模块实现
+- [从零开始手敲次世代引擎（廿）](https://zhuanlan.zhihu.com/p/29127264) 整合图形相关接口到framework中
+- [从零开始手敲次世代游戏引擎（二十一）](https://zhuanlan.zhihu.com/p/29288893) 接上
+- [从零开始手敲次世代游戏引擎（二十二）](https://zhuanlan.zhihu.com/p/29395579) 接上，主要是linux平台的整合
+- [从零开始手敲次世代游戏引擎（二十三）](https://zhuanlan.zhihu.com/p/29618817) 数学库整合
 
 ---
 
@@ -198,7 +203,7 @@ Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
 
 demo的结束dispose逻辑貌似有问题，不能正常地exit，暂时不处理
 
-### magic align func
+## magic align func
 
 ```shell
 #ifndef ALIGN
@@ -227,16 +232,16 @@ references:
 - [Matters Computational](https://www.jjj.de/fxt/fxtbook.pdf)
 - [位运算有什么奇技淫巧？](https://www.zhihu.com/question/38206659)
 
-### 内存管理的相关扩展阅读
+## 内存管理的相关扩展阅读
 
 - [形象生动地说明为什么需要Memory Management](https://www.gamasutra.com/blogs/MichaelKissner/20151104/258271/Writing_a_Game_Engine_from_Scratch__Part_2_Memory.php)
 - [Memory Management part 1 of 3: The Allocator](http://allenchou.net/2013/05/memory-management-part-1-of-3-the-allocator/)
 
-### 如何在ide debug时watch一个array
+## 如何在ide debug时watch一个array
 
 `(Allocator(*)[49]) m_pAllocators`
 
-### macOS下glad_glx相关错误
+## macOS下glad_glx相关错误
 
 以下代码出现`EXC_BAD_ACCESS`错误。
 
@@ -270,7 +275,7 @@ glad使用`dlopen`加载动态库，系统中默认的OpenGL库不包含glx相�
 
 参考：[从零开始手敲次世代游戏引擎（MacOS特别篇）](https://zhuanlan.zhihu.com/p/30721683)，另外原文中还用到了`nm`命令查看库中的API。
 
-### 引入ispc
+## 引入ispc
 
 原文中采用直接编译的方式产出ispc可执行文件，由于编译依赖略麻烦，这里采用了直接下载released binary的方式获取ispc编译程序。
 
@@ -302,13 +307,13 @@ add_custom_command(OUTPUT ${GEOMMATH_LIB_FILE}
         )
 ```
 
-### c++ union?
+## c++ union?
 
 A union is a special class type that can hold only one of its non-static data members at a time.
 
 refer: https://en.cppreference.com/w/cpp/language/union
 
-### 解读类型定义的诀窍 & 数组引用
+## 解读类型定义的诀窍 & 数组引用
 
 > Read declarations from inside out, right to left, parenthesis group first
 
@@ -329,3 +334,7 @@ return SizeValue;}
 refer：
 
 - [how-does-this-size-of-array-template-function-work](https://stackoverflow.com/questions/3368883/how-does-this-size-of-array-template-function-work)
+
+## 计算机图形学分支
+
+- [GAMES101: 现代计算机图形学入门](https://sites.cs.ucsb.edu/~lingqi/teaching/games101.html)
