@@ -1,4 +1,10 @@
 # cases setup
 
-me_add_test(TEST_GeoMath_Inner test.cpp)
-target_link_libraries(TEST_GeoMath_Inner GeomMath)
+me_add_test(TEST_GeomMath_Inner test.cpp)
+target_link_libraries(TEST_GeomMath_Inner GeomMath)
+
+me_add_test(TEST_GeomMath_Vector test_vector.cpp)
+target_link_libraries(TEST_GeomMath_Vector GeomMath)
+
+me_add_test(TEST_GeomMath_Matrix test_matrix.cpp)
+target_link_libraries(TEST_GeomMath_Matrix GeomMath)

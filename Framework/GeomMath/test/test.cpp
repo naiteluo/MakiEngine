@@ -6,7 +6,7 @@ using namespace std;
 using namespace Me;
 
 void vector_test() {
-    cout << fixed;
+    cout << fixed << setprecision(16);
     Vector2f x = {55.3f, 22.1f};
     cout << "Vector2f: ";
     cout << x;
@@ -48,7 +48,7 @@ void vector_test() {
 }
 
 void matrix_test() {
-    cout << fixed;
+    cout << fixed << setprecision(16);
     Matrix4X4f m1;
     BuildIdentityMatrix(m1);
 
@@ -107,8 +107,6 @@ void matrix_test() {
     cout << "Now the vector becomes: " << v1;
     cout << std::endl;
 
-    Matrix4X4f abc;
-
     Vector3f position = {0, 0, -5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
     Matrix4X4f view;
     BuildViewMatrix(view, position, lookAt, up);
@@ -128,10 +126,8 @@ void matrix_test() {
 
 TEST(GeoMathInner, Vector) {
     vector_test();
-    EXPECT_EQ(7 * 6, 42);
 }
 
 TEST(GeoMathInner, Matrix) {
     matrix_test();
-    EXPECT_EQ(7 * 6, 42);
 }

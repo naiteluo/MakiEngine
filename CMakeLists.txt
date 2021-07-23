@@ -40,7 +40,7 @@ macro(me_add_test TESTNAME)
             PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
             )
     add_test(${TESTNAME} ${TESTNAME})
-    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+    set_target_properties(${TESTNAME} PROPERTIES FOLDER Test)
 endmacro()
 
 # ------ gtest setup end ------

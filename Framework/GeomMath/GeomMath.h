@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <float.h>
 #include <iostream>
 #include "include/CrossProduct.h"
 #include "include/DotProduct.h"
@@ -20,6 +21,20 @@
 #endif
 
 namespace Me {
+
+    bool AlmostEqualRelative(float f1, float f2) {
+        float diff = fabs(f1 - f2);
+        f1 = fabs(f1);
+        f2 = fabs(f2);
+
+        float largest = (f1 > f2) ? f1 : f2;
+
+        if (diff <= largest * FLT_EPSILON) {
+            return true;
+        }
+        return false;
+    }
+
     template<typename T, size_t SizeOfArray>
     constexpr size_t countof(T (&array)[SizeOfArray]) { return SizeOfArray; }
 
@@ -149,13 +164,45 @@ namespace Me {
 
     template<template<typename> class TT, typename T>
     std::ostream &operator<<(std::ostream &out, TT<T> vector) {
-        out << "( ";
+        out << "{ ";
         for (int i = 0; i < countof(vector.data); i++) {
-            out << vector.data[i] << ((i == countof(vector.data) - 1) ? ' ' : ',');
+            out << vector.data[i] << ((typeid(T) == typeid(float)) ? "f" : "")
+                << ((i == countof(vector.data) - 1) ? ' ' : ',');
         }
-        out << ")\n";
+        out << "}\n";
 
         return out;
+    }
+
+    template<template<typename> class TT, typename T>
+    void VectorCompare(bool &result, const TT<T> vec1, const TT<T> vec2) {
+        result = true;
+        if (countof(vec1.data) != countof(vec2.data)) {
+            result = false;
+            return;
+        }
+        for (int i = 0; i < countof(vec1.data); ++i) {
+            if (vec1.data[i] != vec2.data[i]) {
+                result = false;
+                return;
+            }
+        }
+    }
+
+    template<template<typename> class TT, typename T>
+    bool operator==(const TT<T> vec1, const TT<T> vec2) {
+        bool result;
+        VectorCompare(result, vec1, vec2);
+
+        return result;
+    }
+
+    template<template<typename> class TT, typename T>
+    bool operator!=(const TT<T> vec1, const TT<T> vec2) {
+        bool result;
+        VectorCompare(result, vec1, vec2);
+
+        return !result;
     }
 
     template<template<typename> class TT, typename T>
@@ -224,15 +271,60 @@ namespace Me {
 
     template<typename T, int ROWS, int COLS>
     std::ostream &operator<<(std::ostream &out, Matrix<T, ROWS, COLS> matrix) {
-        out << std::endl;
+        out << "{{{" << std::endl;
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
-                out << matrix.data[i][j] << ((j == COLS - 1) ? '\n' : ',');
+                out << (j == 0 ? "{" : "") << matrix.data[i][j] << ((typeid(T) == typeid(float)) ? "f" : "")
+                    << ((j == COLS - 1) ? "},\n" : ",");
             }
         }
-        out << std::endl;
+        out << "}}}" << std::endl;
 
         return out;
+    }
+
+    // TODO: 用ispc来实现矩阵比较方法
+    template<typename T, int ROWS, int COLS>
+    void MatrixCompare(bool &result, Matrix<T, ROWS, COLS> matrix1, Matrix<T, ROWS, COLS> matrix2) {
+        result = true;
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLS; j++) {
+                if (matrix1.data[i][j] != matrix2.data[i][j]) {
+                    result = false;
+                    return;
+                }
+            }
+        }
+    }
+
+    // TODO: 用ispc来实现矩阵比较方法
+    template<int ROWS, int COLS>
+    void MatrixCompare(bool &result, Matrix<float, ROWS, COLS> matrix1, Matrix<float, ROWS, COLS> matrix2) {
+        result = true;
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLS; j++) {
+                if (!AlmostEqualRelative(matrix1.data[i][j], matrix2.data[i][j])) {
+                    result = false;
+                    return;
+                }
+            }
+        }
+    }
+
+    template<typename T, int ROWS, int COLS>
+    bool operator==(Matrix<T, ROWS, COLS> matrix1, Matrix<T, ROWS, COLS> matrix2) {
+        bool result;
+        MatrixCompare(result, matrix1, matrix2);
+
+        return result;
+    }
+
+    template<typename T, int ROWS, int COLS>
+    bool operator!=(Matrix<T, ROWS, COLS> matrix1, Matrix<T, ROWS, COLS> matrix2) {
+        bool result;
+        MatrixCompare(result, matrix1, matrix2);
+
+        return !result;
     }
 
     template<typename T, int ROWS, int COLS>
