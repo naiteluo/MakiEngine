@@ -15,7 +15,7 @@ namespace Me {
 
         template<typename T>
         void Delete(T *p) {
-            reinterpret_cast<T*>(p)->~T();
+            reinterpret_cast<T *>(p)->~T();
             Free(p, sizeof(T));
         }
 
@@ -29,6 +29,8 @@ namespace Me {
         virtual void Tick();
 
         void *Allocate(size_t size);
+
+        void *Allocate(size_t size, size_t alignment);
 
         void Free(void *p, size_t size);
 

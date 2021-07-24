@@ -27,6 +27,8 @@
 - [从零开始手敲次世代游戏引擎（二十一）](https://zhuanlan.zhihu.com/p/29288893) 接上
 - [从零开始手敲次世代游戏引擎（二十二）](https://zhuanlan.zhihu.com/p/29395579) 接上，主要是linux平台的整合
 - [从零开始手敲次世代游戏引擎（二十三）](https://zhuanlan.zhihu.com/p/29618817) 数学库整合
+- [从零开始手敲次世代游戏引擎（二十四）](https://zhuanlan.zhihu.com/p/29723169) 资源管理器开篇
+- [从零开始手敲次世代游戏引擎（二十五）](https://zhuanlan.zhihu.com/p/29803502) AssetLoader
 
 ---
 

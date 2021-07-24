@@ -1,5 +1,12 @@
 #include "MemoryManager.hpp"
 
+extern "C" void *malloc(size_t size);
+extern "C" void free(void *p);
+
+#ifndef ALIGN
+#define ALIGN(x, a)         (((x) + ((a) - 1)) & ~((a) - 1))
+#endif
+
 using namespace Me;
 
 namespace Me {
@@ -29,8 +36,8 @@ namespace Me {
     static const uint32_t kMaxBlockSize =
             kBlockSizes[kNumBlockSizes - 1];
 
-    size_t * MemoryManager::m_pBlockSizeLoopUp;
-    Allocator* MemoryManager::m_pAllocators;
+    size_t *MemoryManager::m_pBlockSizeLoopUp;
+    Allocator *MemoryManager::m_pAllocators;
 }
 
 int Me::MemoryManager::Initialize() {
@@ -81,6 +88,19 @@ void *Me::MemoryManager::Allocate(size_t size) {
     } else {
         return malloc(size);
     }
+}
+
+void *MemoryManager::Allocate(size_t size, size_t alignment) {
+    uint8_t *p;
+    size += alignment;
+    Allocator *pAlloc = LoopUpAllocator(size);
+    if (pAlloc) {
+        p = reinterpret_cast<uint8_t *>(pAlloc->Allocate());
+    } else {
+        p = reinterpret_cast<uint8_t *>(malloc(size));
+    }
+    p = reinterpret_cast<uint8_t *>(ALIGN(reinterpret_cast<size_t>(p), alignment));
+    return static_cast<void *>(p);
 }
 
 void Me::MemoryManager::Free(void *p, size_t size) {
