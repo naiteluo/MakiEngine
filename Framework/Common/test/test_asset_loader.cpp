@@ -7,7 +7,7 @@
 using namespace Me;
 
 namespace Me {
-    MemoryManager* g_pMemoryManager = new MemoryManager();
+    MemoryManager *g_pMemoryManager = new MemoryManager();
 }
 
 TEST(AssetLoader, Basic) {
@@ -19,6 +19,8 @@ TEST(AssetLoader, Basic) {
     std::cout << str;
 
     g_pMemoryManager->Finalize();
+
+    EXPECT_STREQ(str.c_str(), "hello data\nhello game");
 
     delete g_pMemoryManager;
 }
