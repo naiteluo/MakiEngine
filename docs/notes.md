@@ -417,3 +417,9 @@ c/c++中struct缺省状态下会按byte进行对齐，通过预编译指令能�
 
 ### endian
 
+![endian-memory-view.png](endian-memory-view.png)
+
+![Little-Endian](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Little-Endian.svg/560px-Little-Endian.svg.png)
+
+- [字节序](https://zh.wikipedia.org/wiki/%E5%AD%97%E8%8A%82%E5%BA%8F)
+- [为什么存在大端模式小端模式，为什么没有统一成一个标准](https://www.a-programmer.top/2020/01/01/%E4%B8%BA%E4%BB%80%E4%B9%88%E5%AD%98%E5%9C%A8%E5%A4%A7%E7%AB%AF%E6%A8%A1%E5%BC%8F%E5%B0%8F%E7%AB%AF%E6%A8%A1%E5%BC%8F%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E6%B2%A1%E6%9C%89%E7%BB%9F%E4%B8%80%E6%88%90%E4%B8%80%E4%B8%AA%E6%A0%87%E5%87%86/)
