@@ -254,4 +254,5 @@ void Me::OpenGLApplication::Tick() {
 
 void Me::OpenGLApplication::OnDraw() {
     glXSwapBuffers(m_pDisplay, m_Drawable);
+
 }

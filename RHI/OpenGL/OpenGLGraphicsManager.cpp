@@ -40,3 +40,15 @@ void OpenGLGraphicsManager::Finalize() {
 void OpenGLGraphicsManager::Tick() {
     GraphicsManager::Tick();
 }
+
+void OpenGLGraphicsManager::Clear() {
+    // Set the color to clear the screen to.
+//    glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
+    glClearColor(0.6f, 0.0f, 0.0f, 1.0f);
+    // Clear the screen and depth buffer.
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void OpenGLGraphicsManager::Draw() {
+
+}

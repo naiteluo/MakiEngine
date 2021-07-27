@@ -31,3 +31,30 @@ target_link_libraries(MyGameEngineOpenGL
 target_include_directories(MyGameEngineOpenGL PRIVATE
         "${PROJECT_SOURCE_DIR}/External/GL/include"
         )
+
+# Cocoa application
+find_library(COCOA_LIBRARY Cocoa required)
+add_executable(DarwinHelloCocoa MACOSX_BUNDLE
+        CocoaApplication.mm
+        CocoaApplicationConfig.cpp
+        AppDelegate.m
+        WindowDelegate.m
+        )
+target_link_libraries(DarwinHelloCocoa
+        Common
+        ${COCOA_LIBRARY}
+        )
+
+add_executable(DarwinHelloCocoaOpenGL MACOSX_BUNDLE
+        CocoaApplication.mm
+        CocoaOpenGLApplication.mm
+        CocoaOpenGLApplicationConfig.cpp
+        AppDelegate.m
+        WindowDelegate.m
+        GLView.mm
+        )
+target_link_libraries(DarwinHelloCocoaOpenGL
+        OpenGLRHI
+        Common
+        ${COCOA_LIBRARY}
+        )

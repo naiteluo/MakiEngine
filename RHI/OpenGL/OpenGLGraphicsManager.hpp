@@ -11,6 +11,10 @@ namespace Me {
 
         virtual void Tick();
 
+        virtual void Clear();
+
+        virtual void Draw();
+
     private:
 
     };

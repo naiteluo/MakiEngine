@@ -13,3 +13,11 @@ void Me::GraphicsManager::Finalize() {
 void Me::GraphicsManager::Tick() {
 
 }
+
+void Me::GraphicsManager::Clear() {
+
+}
+
+void Me::GraphicsManager::Draw() {
+
+}
