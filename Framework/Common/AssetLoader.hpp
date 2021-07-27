@@ -41,6 +41,8 @@ namespace Me {
 
         Buffer SyncOpenAndReadText(const char *filePath);
 
+        Buffer SyncOpenAndReadBinary(const char *filePath);
+
         size_t SyncRead(const AssetFilePtr &fp, Buffer &buf);
 
         void CloseFile(AssetFilePtr &fp);

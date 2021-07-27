@@ -113,6 +113,30 @@ Me::Buffer Me::AssetLoader::SyncOpenAndReadText(const char *filePath) {
     return *pBuff;
 }
 
+Me::Buffer Me::AssetLoader::SyncOpenAndReadBinary(const char *filePath) {
+    AssetFilePtr fp = OpenFile(filePath, ME_OPEN_BINARY);
+    Buffer *pBuff = nullptr;
+
+    if (fp) {
+        size_t length = GetSize(fp);
+
+        pBuff = new Buffer(length);
+        fread(pBuff->m_pData, length, 1, static_cast<FILE *>(fp));
+        pBuff->m_pData[length] = '\0';
+
+        CloseFile(fp);
+    } else {
+        fprintf(stderr, "Error opening file '%s'\n", filePath);
+        pBuff = new Buffer();
+    }
+
+#ifdef DEBUG
+    fprintf(stderr, "Read file '%s', %d bytes\n", filePath, length);
+#endif
+
+    return *pBuff;
+}
+
 size_t Me::AssetLoader::SyncRead(Me::AssetLoader::AssetFilePtr const &fp, Me::Buffer &buf) {
     size_t sz;
     if (!fp) {

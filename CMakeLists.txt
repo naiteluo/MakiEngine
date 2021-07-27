@@ -45,6 +45,7 @@ endmacro()
 
 # ------ gtest setup end ------
 
+include_directories("${PROJECT_SOURCE_DIR}/Framework/Codec")
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Common")
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")
 include_directories("${PROJECT_SOURCE_DIR}/Framework/GeomMath")
@@ -57,6 +58,7 @@ add_subdirectory(Framework)
 add_subdirectory(Platform)
 add_subdirectory(RHI)
 add_subdirectory(Test)
+add_subdirectory(Noob)
 
 # ------------------------- Begin Generic CMake Variable Logging ------------------
 

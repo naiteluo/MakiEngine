@@ -322,9 +322,10 @@ refer: https://en.cppreference.com/w/cpp/language/union
 Example:
 
 ```c++
-    template<typename T, int SizeValue>
+template<typename T, int SizeValue>
 int GetArrLength(T(&)[SizeValue]){
-return SizeValue;}
+    return SizeValue;
+}
 ```
 
 `T(&)[SizeValue]` is an unnamed parameter that is a reference to an array of size 'SizeValue' of type T. It accepts a reference to any array, where the type and size of the array are template parameters.
@@ -340,3 +341,79 @@ refer：
 ## 计算机图形学分支
 
 - [GAMES101: 现代计算机图形学入门](https://sites.cs.ucsb.edu/~lingqi/teaching/games101.html)
+
+## duplicate symbol error when linking
+
+[Solution](https://kaushikghose.wordpress.com/2020/01/24/static-linking-duplicate-symbol-error-and-inlineing/)
+
+## google test advanced
+
+在写BMP的test case的时候，希望覆盖文件不存在的异常测试，需要使用到death tests
+
+- [Advanced googletest Topics](https://google.github.io/googletest/advanced.html#death-tests-and-threads)
+- [Advanced googletest Topics (github)](https://github.com/google/googletest/blob/master/docs/advanced.md#death-tests)
+
+## 区分赋值和初始化
+
+赋值 v.s. 初始化
+
+- 赋值将重写一个已存在对象的值，调用operator =
+- 初始化将创建一个新对象，同时为此新对象提供初始值，调用复制构造函数
+
+> Q: What is the difference between initialization and assignment?
+> 
+> A: Initialization gives a variable an initial value at the point when it is created. Assignment gives a variable a value at some point after the variable is created.
+
+Examples in this project：
+
+```c++
+// 赋值：
+Buffer buf;
+buf = assetLoader.SyncOpenAndReadBinary("Textures/icelogo-color.bmp"); // call operator=(Buffer &&rhs) {...}
+
+// 初始化：
+Buffer buf = assetLoader.SyncOpenAndReadBinary("Textures/icelogo-color.bmp"); // call Buffer(const Buffer &rhs) {...}
+
+```
+- [Variable assignment and initialization](https://www.learncpp.com/cpp-tutorial/variable-assignment-and-initialization/)
+- [c++ 赋值和初始化详解](https://www.cnblogs.com/youxin/archive/2012/06/08/2542306.html)
+- [Understanding lvalues and rvalues in C and C++](https://eli.thegreenplace.net/2011/12/15/understanding-lvalues-and-rvalues-in-c-and-c)
+  - [译文：理解 C/C++ 中的左值和右值](https://nettee.github.io/posts/2018/Understanding-lvalues-and-rvalues-in-C-and-C/)
+  - 其中一个评论的解析比较容易理解：
+    > 写得很好，但作者用“转换”这个词不好理解，例如注释：“// + 需要右值，所以 a 和 b 被转换成右值”；《c++ primer》有更精确的描述：当一个对象被用作右值时，用的是对象的值（内容）；当对象被用作左值时，用的是对象的身份（在内存中的位置）。所以这里表述成：用a、b的值求和，产生一个右值（临时对象）
+
+## bitmap to struct tricks
+
+在`Framework/Codec/BMP.hpp`中出现了一个比较眼生的预编译命令：
+
+```c++
+#pragma pack(push, 1)
+
+typedef struct _BITMAP_FILEHEADER {
+    uint16_t Signature;
+    uint32_t Size;
+    uint32_t Reserved;
+    uint32_t BitsOffset;
+} BITMAP_FILEHEADER;
+#define BITMAP_FILEHEADER_SIZE 14
+// ...
+#pragma pack(pop)
+```
+
+c/c++中struct缺省状态下会按byte进行对齐，通过预编译指令能更灵活地控制struct的对齐方式，在后续就可以直接根据BMP的保留位规范，
+对文件二进制数据通过`reinterpret_cast<BITMAP_FILEHEADER *>(buf.m_pData)`，
+直接将二进制数据进行强制类型转换，而不需要低效地按位对结构体进行赋值
+
+- `pack` is a preprocessor directive to indicate to compiler how to align data in memory.
+- [C++ Struct memory alignment](https://carlosvin.github.io/posts/cpp-pragma-pack/en/)
+- [Why isn't sizeof for a struct equal to the sum of sizeof of each member?](https://stackoverflow.com/questions/119123/why-isnt-sizeof-for-a-struct-equal-to-the-sum-of-sizeof-of-each-member)
+- [reinterpret_cast](https://en.cppreference.com/w/cpp/language/reinterpret_cast)
+- [C++强制类型转换运算符](http://c.biancheng.net/view/410.html)
+
+> reinterpret_cast 用于进行各种不同类型的指针之间、不同类型的引用之间以及指针和能容纳指针的整数类型之间的转换。
+> 转换时，执行的是逐个比特复制的操作。
+> 
+> reinterpret_cast体现了 C++ 语言的设计思想：用户可以做任何操作，但要为自己的行为负责。
+
+### endian
+

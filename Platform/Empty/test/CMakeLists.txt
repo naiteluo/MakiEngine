@@ -1,0 +1,2 @@
+me_add_test(TEST_Empty_Application test_empty_application.cpp)
+target_link_libraries(TEST_Empty_Application Common)
