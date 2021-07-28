@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 
+# set c/cxx flag
 IF (${UNIX} OR ${APPLE})
     set(CMAKE_C_COMPILER "clang")
     set(CMAKE_C_FLAGS_DEBUG "-g")
@@ -11,6 +12,7 @@ IF (${UNIX} OR ${APPLE})
 ELSEIF (${WIN32})
     # nothing yet
 ENDIF (${UNIX} OR ${APPLE})
+
 # in case to see more warning
 set(CMAKE_C_FLAGS "-Wall")
 set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG")
@@ -19,7 +21,25 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O4 -DNDEBUG")
 
+# set Platform flag
+IF (${UNIX})
+    IF (${APPLE})
+        set(ME_TARGET_PLATFORM "Darwin")
+    ELSE (${APPLE})
+        set(ME_TARGET_PLATFORM "Linux")
+    ENDIF (${APPLE})
+ELSEIF (${WIN32})
+    set(ME_TARGET_PLATFORM "Windows")
+ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES Orbis)
+    set(ME_TARGET_PLATFORM "Orbis")
+    set(ORBIS 1)
+ENDIF (${UNIX})
+
+# TODO sequence of this line do matters
 project(MakiEngine)
+
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
 
 # ------ gtest setup start ------
 include(FetchContent)
@@ -42,17 +62,28 @@ macro(me_add_test TESTNAME)
     add_test(${TESTNAME} ${TESTNAME})
     set_target_properties(${TESTNAME} PROPERTIES FOLDER Test)
 endmacro()
-
 # ------ gtest setup end ------
 
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Codec")
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Common")
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")
-include_directories("${PROJECT_SOURCE_DIR}/Framework/GeomMath")
-include_directories("${PROJECT_SOURCE_DIR}/RHI")
-IF (${APPLE})
-    include_directories("${PROJECT_SOURCE_DIR}/Platform/Darwin")
-ENDIF (${APPLE})
+include_directories(${PROJECT_SOURCE_DIR}/Framework/Codec)
+include_directories(${PROJECT_SOURCE_DIR}/Framework/Common)
+include_directories(${PROJECT_SOURCE_DIR}/Framework/Interface)
+include_directories(${PROJECT_SOURCE_DIR}/Framework/GeomMath)
+include_directories(${PROJECT_SOURCE_DIR}/RHI)
+include_directories(${PROJECT_SOURCE_DIR}/Platform/${ME_TARGET_PLATFORM})
+
+# Set up external include and library
+set(ME_EXTERNAL_ROOT ${PROJECT_SOURCE_DIR}/External/${ME_TARGET_PLATFORM})
+include_directories(
+        ${ME_EXTERNAL_ROOT}/include/CrossGuid-0.2.3/
+)
+set(ME_EXTERNAL_LIBRARY_PATH ${ME_EXTERNAL_ROOT}/lib)
+find_library(
+        XG_LIBRARY crossguid
+        PATHS "${ME_EXTERNAL_LIBRARY_PATH}/CrossGuid-0.2.3/"
+        NO_CMAKE_FIND_ROOT_PATH
+)
+
+include(GUIDPlatformDependencies)
 
 add_subdirectory(Framework)
 add_subdirectory(Platform)

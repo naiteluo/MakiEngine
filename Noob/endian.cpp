@@ -15,6 +15,8 @@ int main() {
         printf("big endian");
     }
 
+    printf("\n");
+
     // method 2
     u u1;
     u1.a = 1;

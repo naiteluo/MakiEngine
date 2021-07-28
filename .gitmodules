@@ -1,0 +1,3 @@
+[submodule "External/src/crossguid"]
+	path = External/src/crossguid
+	url = https://github.com/naiteluo/crossguid.git

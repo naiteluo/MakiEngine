@@ -8,13 +8,13 @@ build game engine from scratch
 
     ```shell
     cd ./External
-    sh ./glad_generate.sh
+    sh ./generate_glad_headers.sh
     ```
 
 2. download ispc compiler
    
    ```shell
    cd ./External
-   sh ./ispc_install.sh
+   sh ./install_ispc_osx.sh
    ```
 

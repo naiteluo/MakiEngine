@@ -39,4 +39,7 @@ cmake-build-*
 .idea
 
 # External
-External/ispc-*
+External/**/ispc-release
+External/build
+External/tmp
+External/Darwin

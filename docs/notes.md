@@ -30,6 +30,7 @@
 - [从零开始手敲次世代游戏引擎（二十四）](https://zhuanlan.zhihu.com/p/29723169) 资源管理器开篇
 - [从零开始手敲次世代游戏引擎（二十五）](https://zhuanlan.zhihu.com/p/29803502) AssetLoader
 - [从零开始手敲次世代游戏引擎（二十六）](https://zhuanlan.zhihu.com/p/29890957) Bmp Parser
+- [从零开始手敲次世代游戏引擎（二十七）](https://zhuanlan.zhihu.com/p/29933257) OpenGEX
 
 ---
 
@@ -429,3 +430,35 @@ c/c++中struct缺省状态下会按byte进行对齐，通过预编译指令能�
 
 [BMP file format](https://en.wikipedia.org/wiki/BMP_file_format#Pixel_array_(bitmap_data))
 
+## github 存储大文件
+
+[An open source Git extension for versioning large files](https://git-lfs.github.com/)
+
+## OpenGEX
+
+> The Open Game Engine Exchange (OpenGEX) format is a text-based file format designed to facilitate the transfer of complex 3D scene data between applications such as modeling tools and game engines.
+
+[Open Game Engine Exchange](https://en.m.wikipedia.org/wiki/Open_Game_Engine_Exchange)
+
+## AOS v.s. SOA
+
+- AOS, Array Of Struct
+- SOA, Struct of Array
+
+两种不同的数据组织方式，AOS是平时编程常用模型，把顶点相关属性放在一个结构体内组织，用数组存储所有顶点的结构体；
+优点是将同一个顶点的相关属性放在了连续相邻的内存区域，读取单顶点的各个属性数据很可能会全部处于CPU的高速缓存中，加快处理速度；
+
+但在GPU并行处理场景中，大多数场景GPU会一次读取所有参与计算的顶点的某个属性，这时候如果采用的是AOS，
+不同顶点的同一个属性在内存空间上地址不连续，GPU的高速缓存读取进来的数据可能是当前它不需要的，利用率较低，消耗更大；
+
+所以在游戏引擎场景中，更多地会把所有顶点的一个属性以数组方式组织，再把不同属性的数据组织到一个结构体内。
+
+## remove git submodule
+
+```shell
+git submodule deinit -f -- mymodule
+
+rm -rf .git/modules/mymodule
+
+git rm -f mymodule
+```
