@@ -64,7 +64,7 @@ macro(me_add_test TESTNAME)
 endmacro()
 # ------ gtest setup end ------
 
-include_directories(${PROJECT_SOURCE_DIR}/Framework/Codec)
+include_directories(${PROJECT_SOURCE_DIR}/Framework/Parser)
 include_directories(${PROJECT_SOURCE_DIR}/Framework/Common)
 include_directories(${PROJECT_SOURCE_DIR}/Framework/Interface)
 include_directories(${PROJECT_SOURCE_DIR}/Framework/GeomMath)
@@ -74,12 +74,25 @@ include_directories(${PROJECT_SOURCE_DIR}/Platform/${ME_TARGET_PLATFORM})
 # Set up external include and library
 set(ME_EXTERNAL_ROOT ${PROJECT_SOURCE_DIR}/External/${ME_TARGET_PLATFORM})
 include_directories(
+        ${ME_EXTERNAL_ROOT}/include/
+)
+include_directories(
         ${ME_EXTERNAL_ROOT}/include/CrossGuid-0.2.3/
 )
 set(ME_EXTERNAL_LIBRARY_PATH ${ME_EXTERNAL_ROOT}/lib)
 find_library(
         XG_LIBRARY crossguid
         PATHS "${ME_EXTERNAL_LIBRARY_PATH}/CrossGuid-0.2.3/"
+        NO_CMAKE_FIND_ROOT_PATH
+)
+find_library(
+        OPENDDL_LIBRARY OpenDDL
+        PATHS ${ME_EXTERNAL_LIBRARY_PATH}
+        NO_CMAKE_FIND_ROOT_PATH
+)
+find_library(
+        OPENGEX_LIBRARY OpenGEX
+        PATHS ${ME_EXTERNAL_LIBRARY_PATH}
         NO_CMAKE_FIND_ROOT_PATH
 )
 
