@@ -4,7 +4,7 @@
 #import "GraphicsManager.hpp"
 
 namespace Me {
-        extern GraphicsManager* g_pGraphicsManager;
+    extern GraphicsManager *g_pGraphicsManager;
 }
 
 @implementation GLView

@@ -1,4 +1,6 @@
-#include <stdio.h>
+#include <cstdio>
+#include <chrono>
+#include <thread>
 #include "IApplication.hpp"
 #include "MemoryManager.hpp"
 #include "GraphicsManager.hpp"
@@ -35,6 +37,7 @@ int main(int argc, char **argv) {
         g_pApp->Tick();
         g_pMemoryManager->Tick();
         g_pGraphicsManager->Tick();
+//        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     g_pGraphicsManager->Finalize();

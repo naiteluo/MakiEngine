@@ -462,3 +462,7 @@ rm -rf .git/modules/mymodule
 
 git rm -f mymodule
 ```
+
+## `config.h.in`
+
+## [Advantages of using std::make_unique over new operator](https://stackoverflow.com/questions/37514509/advantages-of-using-stdmake-unique-over-new-operator)

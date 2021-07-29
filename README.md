@@ -2,19 +2,17 @@
 
 build game engine from scratch
 
+## [Notes and Know-hows](./docs/notes.md)
+
 ## Pre-Scripts
 
-1. generate glad
+```shell
+sh External/generate_glad_headers.sh
+sh External/install_ispc_{PLATFORM}.sh
+sh External/build_crossguid.sh
+sh External/build_opengex.sh
+```
 
-    ```shell
-    cd ./External
-    sh ./generate_glad_headers.sh
-    ```
+## Build
 
-2. download ispc compiler
-   
-   ```shell
-   cd ./External
-   sh ./install_ispc_osx.sh
-   ```
 

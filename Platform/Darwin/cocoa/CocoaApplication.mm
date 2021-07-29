@@ -1,8 +1,8 @@
 #include <string.h>
 #include "CocoaApplication.h"
 
-#import <AppDelegate.h>
-#import <WindowDelegate.h>
+#import "AppDelegate.h"
+#import "WindowDelegate.h"
 
 using namespace Me;
 

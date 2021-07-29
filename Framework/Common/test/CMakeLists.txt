@@ -1,2 +1,2 @@
-me_add_test(TEST_AssetLoader_1 test_asset_loader.cpp)
-target_link_libraries(TEST_AssetLoader_1 Common)
+me_add_test(Test_Load_Asset test_asset_loader.cpp)
+target_link_libraries(Test_Load_Asset Common)
