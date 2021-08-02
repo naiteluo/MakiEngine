@@ -16,7 +16,7 @@ int CocoaOpenGLApplication::Initialize() {
     if (!result) {
         NSOpenGLPixelFormatAttribute attrs[] = {
                 NSOpenGLPFAAccelerated,
-                NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
+                NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core,
                 NSOpenGLPFAColorSize, 32,
                 NSOpenGLPFADepthSize, 24,
                 NSOpenGLPFAStencilSize, 8,
