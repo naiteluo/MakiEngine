@@ -331,8 +331,6 @@ int main(void) {
     }
 
     // clean up
-    xcb_destroy_window(pConn, window);
-    glXDestroyContext(display, context);
     xcb_disconnect(pConn);
 
     return 0;

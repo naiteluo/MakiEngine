@@ -1,6 +1,7 @@
 # Cocoa application
 
 find_library(COCOA_LIBRARY Cocoa required)
+find_library(OPENGL_LIBRARY OpenGL required)
 
 add_executable(${ME_PLATFORM_PREFIX}Cocoa MACOSX_BUNDLE
         CocoaApplication.mm
@@ -26,7 +27,6 @@ target_link_libraries(${ME_PLATFORM_PREFIX}Cocoa_OpenGL
         Common
         ${COCOA_LIBRARY}
         ${OPENGL_LIBRARY}
-        dl
         )
 target_include_directories(${ME_PLATFORM_PREFIX}Cocoa_OpenGL PRIVATE "${PROJECT_SOURCE_DIR}/External/GL/include")
 me_add_xg_platform_dependencies(${ME_PLATFORM_PREFIX}Cocoa_OpenGL)

@@ -67,17 +67,42 @@ void Me::XcbApplication::Finalize() {
 
 void Me::XcbApplication::Tick() {
     xcb_generic_event_t *pEvent;
-    pEvent = xcb_wait_for_event(m_pConn);
-    switch (pEvent->response_type & ~0x80) {
-        // XCB_EXPOSE may not fired
-        case XCB_VISIBILITY_NOTIFY:
-        case XCB_EXPOSE: {
+    pEvent = xcb_poll_for_event(m_pConn);
+    if (pEvent) {
+        // handle x event
+        switch (pEvent->response_type & ~0x80) {
+            // XCB_EXPOSE may not be fired
+            case XCB_VISIBILITY_NOTIFY:
+            case XCB_EXPOSE:
+                break;
+            case XCB_KEY_PRESS:
+                BaseApplication::m_bQuit = true;
+                break;
+        }
+        free(pEvent);
+    } else {
+        if (xcb_connection_has_error(m_pConn)) {
+            m_bQuit = true;
+        } else {
             OnDraw();
         }
-            break;
-        case XCB_KEY_PRESS:
-            BaseApplication::m_bQuit = true;
-            break;
     }
-    free(pEvent);
 }
+
+// wrong
+//void Me::XcbApplication::Tick() {
+//    xcb_generic_event_t *pEvent;
+//    pEvent = xcb_wait_for_event(m_pConn);
+//    switch (pEvent->response_type & ~0x80) {
+//        // XCB_EXPOSE may not fired
+//        case XCB_VISIBILITY_NOTIFY:
+//        case XCB_EXPOSE: {
+//            OnDraw();
+//        }
+//            break;
+//        case XCB_KEY_PRESS:
+//            BaseApplication::m_bQuit = true;
+//            break;
+//    }
+//    free(pEvent);
+//}

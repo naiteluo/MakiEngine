@@ -1,12 +1,10 @@
 #import <Cocoa/Cocoa.h>
 
-@interface GLView : NSView
-{
+@interface GLView : NSView {
 @private
-NSOpenGLContext* _openGLContext;
+    NSOpenGLContext *_openGLContext;
 }
 
-@property (nonatomic, strong) NSOpenGLPixelFormat* pixelFormat;
+@property(nonatomic, strong) NSOpenGLPixelFormat *pixelFormat;
 
 @end
-

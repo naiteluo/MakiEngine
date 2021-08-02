@@ -252,8 +252,48 @@ void Me::OpenGLApplication::Tick() {
     XcbApplication::Tick();
 }
 
+GLAPI void GLAPIENTRY
+gluLookAt1(GLdouble eyeX, GLdouble eyeY, GLdouble eyeZ, GLdouble centerX, GLdouble centerY, GLdouble centerZ,
+          GLdouble upX, GLdouble upY, GLdouble upZ) {
+    int i;
+    Me::Vector3f forward, side, up;
+    Me::Matrix4X4f m;
+
+    forward.x = centerX - eyeX;
+    forward.y = centerY - eyeY;
+    forward.z = centerZ - eyeZ;
+
+    up.x = upX;
+    up.y = upY;
+    up.z = upZ;
+
+    Me::Normalize(forward);
+
+    Me::CrossProduct(side, forward, up);
+    Me::Normalize(side);
+
+    Me::CrossProduct(up, side, forward);
+
+    Me::BuildIdentityMatrix(m);
+
+    m[0][0] = side[0];
+    m[1][0] = side[1];
+    m[2][0] = side[2];
+
+    m[0][1] = up[0];
+    m[1][1] = up[1];
+    m[2][1] = up[2];
+
+    m[0][2] = -forward[0];
+    m[1][2] = -forward[1];
+    m[2][2] = -forward[2];
+
+    glMultMatrixf(m);
+    glTranslated(-eyeX, -eyeY, -eyeZ);
+}
+
 void Me::OpenGLApplication::OnDraw() {
-    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClearColor(0.0, 0.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glMatrixMode(GL_PROJECTION);
@@ -262,15 +302,18 @@ void Me::OpenGLApplication::OnDraw() {
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-//    gluLookAt(0., 0., 10., 0., 0., 0., 0., 1., 0.);
+    // GLU is not part of OpenGL
+    // it is an OpenGL utility, not update for long time
+    // we can replace it with our own version of gluLookAt
+    gluLookAt1(0., 0., 10., 0., 0., 0., 0., 1., 0.);
 
     glBegin(GL_QUADS);
     glColor3f(1., 0., 0.);
     glVertex3f(-.75, -.75, 0.);
     glColor3f(0., 1., 0.);
-    glVertex3f( .75, -.75, 0.);
+    glVertex3f(.75, -.75, 0.);
     glColor3f(0., 0., 1.);
-    glVertex3f( .75, .75, 0.);
+    glVertex3f(.75, .75, 0.);
     glColor3f(1., 1., 0.);
     glVertex3f(-.75, .75, 0.);
     glEnd();

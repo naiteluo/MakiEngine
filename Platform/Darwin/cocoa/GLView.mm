@@ -2,7 +2,6 @@
 #import <OpenGL/gl.h>
 
 #import "GraphicsManager.hpp"
-
 namespace Me {
     extern GraphicsManager *g_pGraphicsManager;
 }
@@ -14,13 +13,23 @@ namespace Me {
 
     [_openGLContext makeCurrentContext];
 
-    Me::g_pGraphicsManager->Clear();
-    Me::g_pGraphicsManager->Draw();
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glColor3f(1.0f, 0.85f, 0.35f);
+    glBegin(GL_TRIANGLES);
+    {
+        glVertex3f(0.0, 0.6, 0.0);
+        glVertex3f(-0.2, -0.3, 0.0);
+        glVertex3f(0.2, -0.3, 0.0);
+    }
+    glEnd();
+    glFlush();
 
     [_openGLContext flushBuffer];
 }
 
 - (instancetype)initWithFrame:(NSRect)frameRect {
+    NSLog(@"initWithFrame 0");
     self = [super initWithFrame:frameRect];
 
     _openGLContext = [[NSOpenGLContext alloc] initWithFormat:_pixelFormat shareContext:nil];
@@ -32,10 +41,13 @@ namespace Me {
                                                  name:NSViewGlobalFrameDidChangeNotification
                                                object:self];
 
+//    [_openGLContext setView:self];
+    NSLog(@"initWithFrame 1");
     return self;
 }
 
 - (void)lockFocus {
+    NSLog(@"lockFocus");
     [super lockFocus];
     if ([_openGLContext view] != self) {
         [_openGLContext setView:self];

@@ -6,17 +6,17 @@
 
 using namespace Me;
 
-int CocoaApplication::Initialize()
-{
+int CocoaApplication::Initialize() {
+    NSLog(@"CocoaApplication::Initialize");
     int result = 0;
 
-    [NSApplication  sharedApplication];
+    [NSApplication sharedApplication];
 
     // Menu
-    NSString* appName = [NSString stringWithFormat:@"%s", m_Config.appName];
+    NSString *appName = [NSString stringWithFormat:@"%s", m_Config.appName];
     id menubar = [[NSMenu alloc] initWithTitle:appName];
     id appMenuItem = [NSMenuItem new];
-    [menubar addItem: appMenuItem];
+    [menubar addItem:appMenuItem];
     [NSApp setMainMenu:menubar];
 
     id appMenu = [NSMenu new];
@@ -27,14 +27,15 @@ int CocoaApplication::Initialize()
     [appMenuItem setSubmenu:appMenu];
 
     id appDelegate = [AppDelegate new];
-    [NSApp setDelegate: appDelegate];
+    [NSApp setDelegate:appDelegate];
     [NSApp activateIgnoringOtherApps:YES];
     [NSApp finishLaunching];
 
     NSInteger style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
                       NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable;
 
-    m_pWindow = [[NSWindow alloc] initWithContentRect:CGRectMake(0, 0, m_Config.screenWidth, m_Config.screenHeight) styleMask:style backing:NSBackingStoreBuffered defer:NO];
+    m_pWindow = [[NSWindow alloc] initWithContentRect:CGRectMake(0, 0, m_Config.screenWidth,
+                                                                 m_Config.screenHeight) styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [m_pWindow setTitle:appName];
     [m_pWindow makeKeyAndOrderFront:nil];
     id winDelegate = [WindowDelegate new];
@@ -43,20 +44,17 @@ int CocoaApplication::Initialize()
     return result;
 }
 
-void CocoaApplication::Finalize()
-{
+void CocoaApplication::Finalize() {
     [m_pWindow release];
 }
 
-void CocoaApplication::Tick()
-{
+void CocoaApplication::Tick() {
     NSEvent *event = [NSApp nextEventMatchingMask:NSEventMaskAny
                                         untilDate:nil
                                            inMode:NSDefaultRunLoopMode
                                           dequeue:YES];
 
-    switch([(NSEvent *)event type])
-    {
+    switch ([(NSEvent *) event type]) {
         case NSEventTypeKeyDown:
             NSLog(@"Key Down Event Received!");
             break;
