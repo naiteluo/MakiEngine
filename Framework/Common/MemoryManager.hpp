@@ -40,4 +40,6 @@ namespace Me {
     private:
         static Allocator *LoopUpAllocator(size_t size);
     };
+
+    extern MemoryManager *g_pMemoryManager;
 }

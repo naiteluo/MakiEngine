@@ -159,6 +159,13 @@ namespace Me {
         operator T *() { return data; };
 
         operator const T *() const { return static_cast<const T *>(data); };
+
+        Vector4Type &operator=(const T *f) {
+            for (int32_t i = 0; i < 4; i++) {
+                data[i] = *(f + i);
+            }
+            return *this;
+        };
     };
 
     typedef Vector4Type<float> Vector4f;
@@ -269,6 +276,15 @@ namespace Me {
         operator T *() { return &data[0][0]; };
 
         operator const T *() const { return static_cast<const T *>(&data[0][0]); };
+
+        Matrix &operator=(const T *_data) {
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLS; j++) {
+                    data[i][j] = *(_data + i * COLS + j);
+                }
+            }
+            return *this;
+        }
     };
 
     typedef Matrix<float, 4, 4> Matrix4X4f;
@@ -499,6 +515,19 @@ namespace Me {
                                    }}};
 
         matrix = translation;
+
+        return;
+    }
+
+    inline void MatrixScale(Matrix4X4f &matrix, const float x, const float y, const float z) {
+        Matrix4X4f scale = {{{
+                                     {x, 0.0f, 0.0f, 0.0f},
+                                     {0.0f, y, 0.0f, 0.0f},
+                                     {0.0f, 0.0f, z, 0.0f},
+                                     {0.0f, 0.0f, 0.0f, 1.0f},
+                             }}};
+
+        matrix = scale;
 
         return;
     }

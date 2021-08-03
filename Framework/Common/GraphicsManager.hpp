@@ -19,5 +19,4 @@ namespace Me {
     };
 
     extern GraphicsManager *g_pGraphicsManager;
-
 }
