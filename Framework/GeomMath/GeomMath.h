@@ -162,6 +162,7 @@ namespace Me {
     };
 
     typedef Vector4Type<float> Vector4f;
+    typedef Vector4Type<float> Quaternion;
     typedef Vector4Type<uint8_t> R8G8B8A8Unorm;
     typedef Vector4Type<uint8_t> Vector4i;
 
@@ -332,7 +333,7 @@ namespace Me {
 
     template<typename T, int ROWS, int COLS>
     inline void MatrixAdd(Matrix<T, ROWS, COLS> &result, const Matrix<T, ROWS, COLS> &matrix1,
-                   const Matrix<T, ROWS, COLS> &matrix2) {
+                          const Matrix<T, ROWS, COLS> &matrix2) {
         ispc::AddByElement(matrix1, matrix2, result, countof(result.data));
     }
 
@@ -346,7 +347,7 @@ namespace Me {
 
     template<typename T, int ROWS, int COLS>
     inline void MatrixSub(Matrix<T, ROWS, COLS> &result, const Matrix<T, ROWS, COLS> &matrix1,
-                   const Matrix<T, ROWS, COLS> &matrix2) {
+                          const Matrix<T, ROWS, COLS> &matrix2) {
         ispc::SubByElement(matrix1, matrix2, result, countof(result.data));
     }
 
@@ -359,7 +360,8 @@ namespace Me {
     }
 
     template<typename T, int Da, int Db, int Dc>
-    inline void MatrixMultiply(Matrix<T, Da, Dc> &result, const Matrix<T, Da, Db> &matrix1, const Matrix<T, Dc, Db> &matrix2) {
+    inline void
+    MatrixMultiply(Matrix<T, Da, Dc> &result, const Matrix<T, Da, Db> &matrix1, const Matrix<T, Dc, Db> &matrix2) {
         Matrix<T, Dc, Db> matrix2_transpose;
         Transpose(matrix2_transpose, matrix2);
         for (int i = 0; i < Da; i++) {
@@ -474,7 +476,7 @@ namespace Me {
 
 
     inline void BuildPerspectiveFovLHMatrix(Matrix4X4f &matrix, const float fieldOfView, const float screenAspect,
-                                     const float screenNear, const float screenDepth) {
+                                            const float screenNear, const float screenDepth) {
         Matrix4X4f perspective = {{{
                                            {1.0f / (screenAspect * tanf(fieldOfView * 0.5f)), 0.0f, 0.0f, 0.0f},
                                            {0.0f, 1.0f / tanf(fieldOfView * 0.5f), 0.0f, 0.0f},
@@ -545,6 +547,40 @@ namespace Me {
         matrix = rotation;
 
         return;
+    }
+
+    inline void MatrixRotationAxis(Matrix4X4f &matrix, const Vector3f &axis, const float angle) {
+        float c = cosf(angle), s = sinf(angle), one_minus_c = 1.0f - c;
+
+        Matrix4X4f rotation = {{{
+                                        {c + axis.x * axis.x * one_minus_c, axis.x * axis.y * one_minus_c + axis.z * s,
+                                                axis.x * axis.z * one_minus_c - axis.y * s, 0.0f},
+                                        {axis.x * axis.y * one_minus_c - axis.z * s, c + axis.y * axis.y * one_minus_c,
+                                                axis.y * axis.z * one_minus_c + axis.x * s, 0.0f},
+                                        {axis.x * axis.z * one_minus_c + axis.y * s,
+                                                axis.y * axis.z * one_minus_c - axis.x * s,
+                                                c + axis.z * axis.z * one_minus_c, 0.0f},
+                                        {0.0f, 0.0f, 0.0f, 1.0f}
+                                }}};
+
+        matrix = rotation;
+    }
+
+    inline void MatrixRotationQuaternion(Matrix4X4f &matrix, Quaternion q) {
+        Matrix4X4f rotation = {{{
+                                        {1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z,
+                                                2.0f * q.x * q.y + 2.0f * q.w * q.z,
+                                                2.0f * q.x * q.z - 2.0f * q.w * q.y, 0.0f},
+                                        {2.0f * q.x * q.y - 2.0f * q.w * q.z,
+                                                1.0f - 2.0f * q.x * q.x - 2.0f * q.z * q.z,
+                                                2.0f * q.y * q.z + 2.0f * q.w * q.x, 0.0f},
+                                        {2.0f * q.x * q.z + 2.0f * q.w * q.y,
+                                                2.0f * q.y * q.z - 2.0f * q.y * q.z - 2.0f * q.w * q.x,
+                                                1.0f - 2.0f * q.x * q.x - 2.0f * q.y * q.y, 0.0f},
+                                        {0.0f, 0.0f, 0.0f, 1.0f}
+                                }}};
+
+        matrix = rotation;
     }
 
 }

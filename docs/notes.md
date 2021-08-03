@@ -466,3 +466,12 @@ git rm -f mymodule
 ## `config.h.in`
 
 ## [Advantages of using std::make_unique over new operator](https://stackoverflow.com/questions/37514509/advantages-of-using-stdmake-unique-over-new-operator)
+
+## Cocoa issue
+
+新增了一个最简化的cocoa cmake demo用于调试和排查cocoa绘制不出来东西的问题，[minimal-cmake-cocoa-app](https://github.com/naiteluo/minimal-cmake-cocoa-app)
+
+使用的OpenGL版本会影响能使用的API
+
+目前苹果已经对OpenGL标识废弃，推荐使用metal，相关文档已经比较老旧。
+

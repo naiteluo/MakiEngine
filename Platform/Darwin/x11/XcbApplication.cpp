@@ -88,21 +88,3 @@ void Me::XcbApplication::Tick() {
         }
     }
 }
-
-// wrong
-//void Me::XcbApplication::Tick() {
-//    xcb_generic_event_t *pEvent;
-//    pEvent = xcb_wait_for_event(m_pConn);
-//    switch (pEvent->response_type & ~0x80) {
-//        // XCB_EXPOSE may not fired
-//        case XCB_VISIBILITY_NOTIFY:
-//        case XCB_EXPOSE: {
-//            OnDraw();
-//        }
-//            break;
-//        case XCB_KEY_PRESS:
-//            BaseApplication::m_bQuit = true;
-//            break;
-//    }
-//    free(pEvent);
-//}

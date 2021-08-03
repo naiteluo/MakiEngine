@@ -7,7 +7,6 @@
 using namespace Me;
 
 int CocoaApplication::Initialize() {
-    NSLog(@"CocoaApplication::Initialize");
     int result = 0;
 
     [NSApplication sharedApplication];
