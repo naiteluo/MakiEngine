@@ -475,3 +475,6 @@ git rm -f mymodule
 
 目前苹果已经对OpenGL标识废弃，推荐使用metal，相关文档已经比较老旧。
 
+## glDrawArrays v.s. glDrawElements
+
+- [difference-in-gldrawarrays-and-gldrawelements](https://gamedev.stackexchange.com/questions/133208/difference-in-gldrawarrays-and-gldrawelements)

@@ -152,6 +152,14 @@ TEST(GeomMathMatrix, BuildViewMatrix) {
 }
 
 TEST(GeomMathMatrix, BuildPerspectiveFovLHMatrix) {
+//    Matrix4X4f view;
+//    Vector3f position = {0, 0, -5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
+//    BuildViewMatrix(view, position, lookAt, up);
+//    Matrix4X4f perspective;
+//    float fov = PI / 2.0f, aspect = 16.0f / 9.0f, near = 1.0f, far = 100.0f;
+//    BuildPerspectiveFovLHMatrix(perspective, fov, aspect, near, far);
+//    Matrix4X4f mvp = view * perspective;
+
     Matrix4X4f view;
     Vector3f position = {0, 0, -5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
     BuildViewMatrix(view, position, lookAt, up);

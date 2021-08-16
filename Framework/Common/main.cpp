@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
         g_pMemoryManager->Tick();
         g_pGraphicsManager->Tick();
         // TODO what for?
-        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+//        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     g_pGraphicsManager->Finalize();
