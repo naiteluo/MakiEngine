@@ -478,3 +478,15 @@ git rm -f mymodule
 ## glDrawArrays v.s. glDrawElements
 
 - [difference-in-gldrawarrays-and-gldrawelements](https://gamedev.stackexchange.com/questions/133208/difference-in-gldrawarrays-and-gldrawelements)
+
+## `void *` and pointer arithmetic
+
+类型`void *`可以用来作为任意类型指针入参的定义，但`void *`是没有类型长度的，所以`void *`没法用于做指针运算，
+如果要用对这种类型的入参做指针运算，要按照你希望的规则先对这个指针做cast。
+我的目标偏移量是3个单位的float，`sizeof(float)`等于4，`sizeof char`等于1，
+所以可以用`(char *) NULL + 3 * sizeof(float)`来计算，或者用`(float *) NULL + 3`来计算。
+
+相关知识点：
+
+- 空类型指针的用途；
+- 指针运算的规则；
