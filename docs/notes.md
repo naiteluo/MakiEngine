@@ -30,7 +30,10 @@
 - [从零开始手敲次世代游戏引擎（二十四）](https://zhuanlan.zhihu.com/p/29723169) 资源管理器开篇
 - [从零开始手敲次世代游戏引擎（二十五）](https://zhuanlan.zhihu.com/p/29803502) AssetLoader
 - [从零开始手敲次世代游戏引擎（二十六）](https://zhuanlan.zhihu.com/p/29890957) Bmp Parser
-- [从零开始手敲次世代游戏引擎（二十七）](https://zhuanlan.zhihu.com/p/29933257) OpenGEX
+- [从零开始手敲次世代游戏引擎（二十七）](https://zhuanlan.zhihu.com/p/29933257) 场景描述文件解析器 & OpenGEX & Scene Graph
+- [从零开始手敲次世代游戏引擎（二十八）](https://zhuanlan.zhihu.com/p/30274711) 定义和实现场景物体及场景结构
+- [从零开始手敲次世代游戏引擎（二十九）](https://zhuanlan.zhihu.com/p/30344564) 
+- 
 
 ---
 
@@ -475,9 +478,14 @@ git rm -f mymodule
 
 目前苹果已经对OpenGL标识废弃，推荐使用metal，相关文档已经比较老旧。
 
+## Left-handed or right-handed?
+
+- [Is OpenGL coordinate system left-handed or right-handed?](https://stackoverflow.com/questions/4124041/is-opengl-coordinate-system-left-handed-or-right-handed)
+
 ## glDrawArrays v.s. glDrawElements
 
 - [difference-in-gldrawarrays-and-gldrawelements](https://gamedev.stackexchange.com/questions/133208/difference-in-gldrawarrays-and-gldrawelements)
+- [gldrawelements-vs-gldrawarrays](https://community.khronos.org/t/gldrawelements-vs-gldrawarrays/33306/2)
 
 ## `void *` and pointer arithmetic
 
@@ -489,4 +497,16 @@ git rm -f mymodule
 相关知识点：
 
 - 空类型指针的用途；
-- 指针运算的规则；
+- 指针运算的规则；[C++ Pointer Arithmetic](https://www.tutorialspoint.com/cplusplus/cpp_pointer_arithmatic.htm)
+- [glVertexAttribPointer](https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glVertexAttribPointer.xhtml)
+
+## RAII
+
+> Modern C++ avoids using heap memory as much as possible by declaring objects on the stack. 
+> When a resource is too large for the stack, then it should be owned by an object. 
+> As the object gets initialized, it acquires the resource it owns. 
+> The object is then responsible for releasing the resource in its destructor. 
+> The owning object itself is declared on the stack. 
+> The principle that objects own resources is also known as "resource acquisition is initialization," or RAII.
+
+- [object-lifetime-and-resource-management-modern-cpp](https://docs.microsoft.com/en-us/cpp/cpp/object-lifetime-and-resource-management-modern-cpp?view=msvc-160)

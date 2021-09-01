@@ -58,6 +58,10 @@ namespace Me {
 
             return out;
         }
+
+        std::string GetStrName() {
+            return m_strName;
+        }
     };
 
     template<typename T>
