@@ -339,6 +339,22 @@ int GetArrLength(T(&)[SizeValue]){
 - 数组有绑定内存的长度，单位数据的长度也已知，所以编译器能推导出来数组的长度, `int arr[10]; int s = sizeof(arr)/sizeof(int); // s == 10`;
 - 引用会保留数组的所有属性，包含内存长度；而指针会退化丢失内存长度；
 
+More about type deducing: Array parameter declarations are treated as if they were pointer parameters(array-to-pointer decay). 
+The type of array that's passed to a template function by value is deduced to be a pointer type.
+Although functions can't declare parameters that are truly arrays, they can declare parameters that are references to arrays.
+And number of elements that an array contains can also be deduced!
+
+```c++
+template<typename T>
+void f(T param);
+
+const char name[] = "Jack"; // name's type: const char [13]
+const char *pName = "Rose"; // pName's type: const char *
+
+f(name); // deduce T as const char *
+f(pName); // deduce T as const char *
+```
+
 refer：
 
 - [how-does-this-size-of-array-template-function-work](https://stackoverflow.com/questions/3368883/how-does-this-size-of-array-template-function-work)
@@ -510,3 +526,15 @@ git rm -f mymodule
 > The principle that objects own resources is also known as "resource acquisition is initialization," or RAII.
 
 - [object-lifetime-and-resource-management-modern-cpp](https://docs.microsoft.com/en-us/cpp/cpp/object-lifetime-and-resource-management-modern-cpp?view=msvc-160)
+
+## universal reference
+
+> If a variable or parameter is declared to have type T&& for some deduced type T, that variable or parameter is a universal reference.
+
+## auto
+
+avoid code of this form: 
+
+```c++
+auto someVar = expression of "invisible" proxy class type;
+```
