@@ -47,10 +47,10 @@ namespace Me {
             GLsizei count;
         };
 
-        int m_vertexCount, m_indexCount;
-        unsigned int m_vertexArrayId, m_vertexBufferId, m_indexBufferId;
+        std::vector<DrawBatchContext> m_VAO;
+        std::unordered_map<std::string, unsigned int> m_Buffers;
 
-        float m_positionX = 0, m_positionY = 0, m_positionZ = -10;
+        float m_positionX = 0, m_positionY = 5, m_positionZ = -15;
         float m_rotationX = 0, m_rotationY = 0, m_rotationZ = 0;
 
         Matrix4X4f m_worldMatrix;

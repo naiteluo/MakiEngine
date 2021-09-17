@@ -1,17 +1,9 @@
 #include <cstdio>
 #include <chrono>
 #include <thread>
-#include "IApplication.hpp"
-#include "MemoryManager.hpp"
-#include "GraphicsManager.hpp"
+#include "BaseApplication.hpp"
 
 using namespace Me;
-
-namespace Me {
-    extern IApplication *g_pApp;
-    extern MemoryManager *g_pMemoryManager;
-    extern GraphicsManager *g_pGraphicsManager;
-}
 
 int main(int argc, char **argv) {
     int ret;
@@ -26,6 +18,18 @@ int main(int argc, char **argv) {
         return ret;
     }
 
+    if ((ret = g_pAssetLoader->Initialize()) != 0) {
+        printf("Asset Loader Initialize failed. Exit now.");
+        return ret;
+    }
+
+    if ((ret = g_pSceneManager->Initialize()) != 0) {
+        printf("Scene Manager Initialize failed. Exit now.");
+        return ret;
+    }
+
+    g_pSceneManager->LoadScene("Scene/paimon.ogex");
+
     if ((ret = g_pGraphicsManager->Initialize()) != 0) {
         printf("Graphics Manager Initialize failed. Exit now.");
         return ret;
@@ -38,7 +42,7 @@ int main(int argc, char **argv) {
         g_pMemoryManager->Tick();
         g_pGraphicsManager->Tick();
         // TODO what for?
-//        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     g_pGraphicsManager->Finalize();

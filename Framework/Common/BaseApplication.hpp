@@ -1,7 +1,10 @@
 #pragma once
 
 #include "IApplication.hpp"
-#include "GfxConfiguration.h"
+#include "MemoryManager.hpp"
+#include "GraphicsManager.hpp"
+#include "AssetLoader.hpp"
+#include "SceneManager.hpp"
 
 namespace Me {
     class BaseApplication : implements IApplication {
