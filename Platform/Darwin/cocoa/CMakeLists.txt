@@ -12,6 +12,10 @@ add_executable(${ME_PLATFORM_PREFIX}Cocoa MACOSX_BUNDLE
 target_link_libraries(${ME_PLATFORM_PREFIX}Cocoa
         Common
         ${COCOA_LIBRARY}
+        ${XG_LIBRARY}
+        ${OPENGEX_LIBRARY}
+        ${OPENDDL_LIBRARY}
+        dl
         )
 
 add_executable(${ME_PLATFORM_PREFIX}Cocoa_OpenGL MACOSX_BUNDLE
