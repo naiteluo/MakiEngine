@@ -1,9 +1,10 @@
 #include <iostream>
 #include <fstream>
-#include <GfxConfiguration.h>
-#include <AssetLoader.hpp>
+#include "GfxConfiguration.h"
+#include "AssetLoader.hpp"
 #include "OpenGLGraphicsManager.hpp"
 #include "IApplication.hpp"
+#include "SceneManager.hpp"
 
 const char VS_SHADER_SOURCE_FILE[] = "Shaders/basic.vs";
 const char PS_SHADER_SOURCE_FILE[] = "Shaders/basic.ps";
@@ -13,11 +14,8 @@ using namespace std;
 
 extern gladGLversionStruct GLVersion;
 
-// link shaders
-unsigned int shaderProgram;
-unsigned int VBO, VAO;
-
 namespace Me {
+
     extern AssetLoader *g_pAssetLoader;
 
     static void OutputShaderErrorMessage(unsigned int shaderId, const char *shaderFilename) {
@@ -110,14 +108,14 @@ int OpenGLGraphicsManager::Initialize() {
             glClearDepth(1.0f);
 
             // Enable depth testing.
-//            glEnable(GL_DEPTH_TEST);
+            glEnable(GL_DEPTH_TEST);
 
-            // Set the polygon winding to front facing for the right handed system.
-//            glFrontFace(GL_CW);
+            // Set the polygon winding to front facing for the right-handed system.
+            glFrontFace(GL_CW);
 
             // Enable back face culling.
-//            glEnable(GL_CULL_FACE);
-//            glCullFace(GL_BACK);
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
 
             // Initialize the world/model matrix to the identity matrix.
             BuildIdentityMatrix(m_worldMatrix);
@@ -130,6 +128,8 @@ int OpenGLGraphicsManager::Initialize() {
 
             // Build the perspective projection matrix.
             BuildPerspectiveFovLHMatrix(m_projectionMatrix, fieldOfView, screenAspect, screenNear, screenDepth);
+            std::cout << "params: " << fieldOfView << " " << screenAspect << std::endl;
+            std::cout << m_projectionMatrix << std::endl;
         }
 
         InitializeShader(VS_SHADER_SOURCE_FILE, PS_SHADER_SOURCE_FILE);
@@ -156,15 +156,9 @@ void OpenGLGraphicsManager::Finalize() {
     glDetachShader(m_shaderProgram, m_vertexShader);
     glDetachShader(m_shaderProgram, m_fragmentShader);
 
-    // Detach the vertex and fragment shaders from the program.
-    glDetachShader(m_shaderProgram, m_vertexShader);
-    glDetachShader(m_shaderProgram, m_fragmentShader);
-
-    // Delete the vertex and fragment shaders.
     glDeleteShader(m_vertexShader);
     glDeleteShader(m_fragmentShader);
 
-    // Delete the shader program.
     glDeleteProgram(m_shaderProgram);
 }
 
@@ -175,15 +169,29 @@ void OpenGLGraphicsManager::Clear() {
     // Set the color to clear the screen to.
     glClearColor(0.8f, 0.3f, 0.4f, 1.0f);
     // Clear the screen and depth buffer.
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void OpenGLGraphicsManager::Draw() {
-    GLenum err;
-    glUseProgram(shaderProgram);
-    glBindVertexArray(
-            VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    static float rotateAngle = 0.0f;
+
+    // Update world matrix to rotate the model
+    rotateAngle += PI / 120;
+    Matrix4X4f rotationMatrixY;
+    Matrix4X4f rotationMatrixZ;
+    MatrixRotationY(rotationMatrixY, rotateAngle);
+    MatrixRotationZ(rotationMatrixZ, 0.0f);
+    MatrixMultiply(m_worldMatrix, rotationMatrixZ, rotationMatrixY);
+
+    // Generate the view matrix based on the camera's position.
+    CalculateCameraPosition();
+
+    // Set the color shader as the current shader program and set the matrices that it will use for rendering
+    glUseProgram(m_shaderProgram);
+    SetShaderParameters(m_worldMatrix, m_viewMatrix, m_projectionMatrix);
+
+    RenderBuffers();
+
     glFlush();
 }
 
@@ -214,94 +222,249 @@ bool OpenGLGraphicsManager::SetShaderParameters(float *worldMatrix, float *viewM
     return true;
 }
 
-const char *vertexShaderSource = "#version 330 core\n"
-                                 "layout (location = 0) in vec3 aPos;\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                                 "}\0";
-const char *fragmentShaderSource = "#version 330 core\n"
-                                   "out vec4 FragColor;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-                                   "}\n\0";
-
-
 void OpenGLGraphicsManager::InitializeBuffers() {
+    auto &scene = g_pSceneManager->GetSceneForRendering();
+    auto pGeometry = scene.GetFirstGeometry();
+    while (pGeometry) {
+        auto pMesh = pGeometry->GetMesh().lock();
+        if (!pMesh) return;
 
-    // build and compile our shader program
-    // ------------------------------------
-    // vertex shader
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    // check for shader compile errors
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        auto vertexPropertiesCount = pMesh->GetVertexPropertiesCount();
+        auto vertexCount = pMesh->GetVertexCount();
+
+        GLuint vao;
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
+
+        GLuint buffer_id;
+        // generate a buffer per property
+        for (int32_t i = 0; i < vertexPropertiesCount; ++i) {
+            const SceneObjectVertexArray &v_property_array = pMesh->GetVertexPropertyArray(i);
+            auto v_property_array_data_size = v_property_array.GetDataSize();
+            auto v_property_array_data = v_property_array.GetData();
+
+            glGenBuffers(1, &buffer_id);
+
+            glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
+            glBufferData(GL_ARRAY_BUFFER, v_property_array_data_size, v_property_array_data, GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(i);
+            glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
+            switch (v_property_array.GetDataType()) {
+                case VertexDataType::kVertexDataTypeFloat1:
+                    glVertexAttribPointer(i, 1, GL_FLOAT, false, 0, 0);
+                    break;
+                case VertexDataType::kVertexDataTypeFloat2:
+                    glVertexAttribPointer(i, 2, GL_FLOAT, false, 0, 0);
+                    break;
+                case VertexDataType::kVertexDataTypeFloat3:
+                    glVertexAttribPointer(i, 3, GL_FLOAT, false, 0, 0);
+                    break;
+                case VertexDataType::kVertexDataTypeFloat4:
+                    glVertexAttribPointer(i, 4, GL_FLOAT, false, 0, 0);
+                    break;
+                case VertexDataType::kVertexDataTypeDouble1:
+                    glVertexAttribPointer(i, 1, GL_DOUBLE, false, 0, 0);
+                    break;
+                case VertexDataType::kVertexDataTypeDouble2:
+                    glVertexAttribPointer(i, 2, GL_DOUBLE, false, 0, 0);
+                    break;
+                case VertexDataType::kVertexDataTypeDouble3:
+                    glVertexAttribPointer(i, 3, GL_DOUBLE, false, 0, 0);
+                    break;
+                case VertexDataType::kVertexDataTypeDouble4:
+                    glVertexAttribPointer(i, 4, GL_DOUBLE, false, 0, 0);
+                    break;
+                default:
+                    assert(0);
+            }
+            m_Buffers[v_property_array.GetAttributeName()] = buffer_id;
+        }
+
+        // generate index buffer's id
+        glGenBuffers(1, &buffer_id);
+
+        const SceneObjectIndexArray &index_array = pMesh->GetIndexArray(0);
+        auto index_array_size = index_array.GetDataSize();
+        auto index_array_data = index_array.GetData();
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer_id);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_array_size, index_array_data, GL_STATIC_DRAW);
+
+        GLsizei indexCount = static_cast<GLsizei>(index_array.GetIndexCount());
+        GLenum mode;
+
+        switch (pMesh->GetPrimitiveType()) {
+            case PrimitiveType::kPrimitiveTypePointList:
+                mode = GL_POINTS;
+                break;
+            case PrimitiveType::kPrimitiveTypeLineList:
+                mode = GL_LINES;
+                break;
+            case PrimitiveType::kPrimitiveTypeLineStrip:
+                mode = GL_LINE_STRIP;
+                break;
+            case PrimitiveType::kPrimitiveTypeTriList:
+                mode = GL_TRIANGLES;
+                break;
+            case PrimitiveType::kPrimitiveTypeTriStrip:
+                mode = GL_TRIANGLE_STRIP;
+                break;
+            case PrimitiveType::kPrimitiveTypeTriFan:
+                mode = GL_TRIANGLE_FAN;
+                break;
+            default:
+                continue;
+        }
+
+        GLenum type;
+        switch (index_array.GetIndexType()) {
+            case IndexDataType::kIndexDataTypeInt8:
+                type = GL_UNSIGNED_BYTE;
+                break;
+            case IndexDataType::kIndexDataTypeInt16:
+                type = GL_UNSIGNED_SHORT;
+                break;
+            case IndexDataType::kIndexDataTypeInt32:
+                type = GL_UNSIGNED_INT;
+                break;
+            default:
+                cerr << "Error: Unsupported Index Type " << index_array << endl;
+                cerr << "Mesh: " << *pMesh << endl;
+                cerr << "Geometry: " << *pGeometry << endl;
+                continue;
+        }
+
+        m_Buffers["index"] = buffer_id;
+
+        DrawBatchContext &dbc = *(new DrawBatchContext);
+        dbc.vao = vao;
+        dbc.mode = mode;
+        dbc.type = type;
+        dbc.count = indexCount;
+        m_VAO.push_back(std::move(dbc));
+
+        pGeometry = scene.GetNextGeometry();
     }
-    // fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // check for shader compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    float vertices[] = {
-            -0.5f, -0.5f, 0.0f, // left
-            0.5f, -0.5f, 0.0f, // right
-            0.0f, 0.5f, 0.0f  // top
-    };
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
-    glEnableVertexAttribArray(0);
-
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0);
 }
 
 void OpenGLGraphicsManager::RenderBuffers() {
-
+    for (auto dbc : m_VAO) {
+        glBindVertexArray(dbc.vao);
+        glDrawElements(dbc.mode, dbc.count, dbc.type, 0);
+    }
 }
 
 bool OpenGLGraphicsManager::InitializeShader(const char *vsFilename, const char *fsFilename) {
-    return false;
+    std::string vertexShaderBuffer;
+    std::string fragmentShaderBuffer;
+    int status;
+
+    // Load the vertex shader source file into a text buffer.
+    vertexShaderBuffer = g_pAssetLoader->SyncOpenAndReadTextFileToString(vsFilename);
+    if (vertexShaderBuffer.empty()) {
+        return false;
+    }
+
+    // Load the fragment shader source file into a text buffer.
+    fragmentShaderBuffer = g_pAssetLoader->SyncOpenAndReadTextFileToString(fsFilename);
+    if (fragmentShaderBuffer.empty()) {
+        return false;
+    }
+
+    // Create a vertex and fragment shader object.
+    m_vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    m_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Copy the shader source code strings into the vertex and fragment shader objects.
+    const char *_v_c_str = vertexShaderBuffer.c_str();
+    glShaderSource(m_vertexShader, 1, &_v_c_str, NULL);
+    const char *_f_c_str = fragmentShaderBuffer.c_str();
+    glShaderSource(m_fragmentShader, 1, &_f_c_str, NULL);
+
+    // Compile the shaders.
+    glCompileShader(m_vertexShader);
+    glCompileShader(m_fragmentShader);
+
+    // Check to see if the vertex shader compiled successfully.
+    glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &status);
+    if (status != 1) {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_vertexShader, vsFilename);
+        return false;
+    }
+
+    // Check to see if the fragment shader compiled successfully.
+    glGetShaderiv(m_fragmentShader, GL_COMPILE_STATUS, &status);
+    if (status != 1) {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_fragmentShader, fsFilename);
+        return false;
+    }
+
+    // Create a shader program object.
+    m_shaderProgram = glCreateProgram();
+
+    // Attach the vertex and fragment shader to the program object.
+    glAttachShader(m_shaderProgram, m_vertexShader);
+    glAttachShader(m_shaderProgram, m_fragmentShader);
+
+    // Bind the shader input variables.
+    glBindAttribLocation(m_shaderProgram, 0, "inputPosition");
+    glBindAttribLocation(m_shaderProgram, 1, "inputColor");
+
+    // Link the shader program.
+    glLinkProgram(m_shaderProgram);
+
+    // Check the status of the link.
+    glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &status);
+    if (status != 1) {
+        // If it did not link then write the syntax error message out to a text file for review.
+        OutputLinkerErrorMessage(m_shaderProgram);
+        return false;
+    }
+
+    return true;
 }
 
 void OpenGLGraphicsManager::CalculateCameraPosition() {
+    Vector3f up, position, lookAt;
+    float yaw, pitch, roll;
+    Matrix4X4f rotationMatrix;
 
+
+    // Setup the vector that points upwards.
+    up.x = 0.0f;
+    up.y = 1.0f;
+    up.z = 0.0f;
+
+    // Setup the position of the camera in the world.
+    position.x = m_positionX;
+    position.y = m_positionY;
+    position.z = m_positionZ;
+
+    // Setup where the camera is looking by default.
+    lookAt.x = 0.0f;
+    lookAt.y = 0.0f;
+    lookAt.z = 1.0f;
+
+    // Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.
+    pitch = m_rotationX * 0.0174532925f;
+    yaw = m_rotationY * 0.0174532925f;
+    roll = m_rotationZ * 0.0174532925f;
+
+    // Create the rotation matrix from the yaw, pitch, and roll values.
+    MatrixRotationYawPitchRoll(rotationMatrix, yaw, pitch, roll);
+
+    // Transform the lookAt and up vector by the rotation matrix so the view is correctly rotated at the origin.
+    TransformCoord(lookAt, rotationMatrix);
+    TransformCoord(up, rotationMatrix);
+
+    // Translate the rotated camera position to the location of the viewer.
+    lookAt.x = position.x + lookAt.x;
+    lookAt.y = position.y + lookAt.y;
+    lookAt.z = position.z + lookAt.z;
+
+    // Finally create the view matrix from the three updated vectors.
+    BuildViewMatrix(m_viewMatrix, position, lookAt, up);
 }

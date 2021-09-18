@@ -8,7 +8,6 @@
 using namespace Me;
 
 int CocoaOpenGLApplication::Initialize() {
-    NSLog(@"CocoaOpenGLApplication::Initialize");
     int result = 0;
 
     result = CocoaApplication::Initialize();
@@ -28,20 +27,18 @@ int CocoaOpenGLApplication::Initialize() {
                 0
         };
 
-        NSLog(@"Before GLView *pGLView = [GLView new];");
+        // create customized view
         GLView *pGLView = [GLView new];
-        NSLog(@"After GLView *pGLView = [GLView new];");
+        // create pixel format
         pGLView.pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
-        NSLog(@"CocoaOpenGLApplication::Initialize");
         if ([pGLView pixelFormat] == nil) {
             NSLog(@"No valid matching OpenGL Pixel Format found");
             [pGLView release];
             return -1;
         }
-
-        NSLog(@"pGLView initWithFrame:CGRectMake");
+        // init view (create opengl context)
         [pGLView initWithFrame:CGRectMake(0, 0, m_Config.screenWidth, m_Config.screenHeight)];
-
+        // add view to window
         [m_pWindow setContentView:pGLView];
     }
 

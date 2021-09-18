@@ -159,9 +159,17 @@ namespace Me {
         operator T *() { return data; };
 
         operator const T *() const { return static_cast<const T *>(data); };
+
+        Vector4Type &operator=(const T *f) {
+            for (int32_t i = 0; i < 4; i++) {
+                data[i] = *(f + i);
+            }
+            return *this;
+        };
     };
 
     typedef Vector4Type<float> Vector4f;
+    typedef Vector4Type<float> Quaternion;
     typedef Vector4Type<uint8_t> R8G8B8A8Unorm;
     typedef Vector4Type<uint8_t> Vector4i;
 
@@ -178,35 +186,24 @@ namespace Me {
     }
 
     template<template<typename> class TT, typename T>
-    inline void VectorCompare(bool &result, const TT<T> vec1, const TT<T> vec2) {
-        result = true;
+    inline bool VectorCompare(const TT<T> vec1, const TT<T> vec2) {
         if (countof(vec1.data) != countof(vec2.data)) {
-            result = false;
-            return;
+            return false;
         }
         for (int i = 0; i < countof(vec1.data); ++i) {
             if (vec1.data[i] != vec2.data[i]) {
-                result = false;
-                return;
+                return false;
             }
         }
+        return true;
     }
 
     template<template<typename> class TT, typename T>
-    bool operator==(const TT<T> vec1, const TT<T> vec2) {
-        bool result;
-        VectorCompare(result, vec1, vec2);
-
-        return result;
+    inline void VectorCompare(bool &result, const TT<T> vec1, const TT<T> vec2) {
+        result = VectorCompare(vec1, vec2);
+        return;
     }
 
-    template<template<typename> class TT, typename T>
-    bool operator!=(const TT<T> vec1, const TT<T> vec2) {
-        bool result;
-        VectorCompare(result, vec1, vec2);
-
-        return !result;
-    }
 
     template<template<typename> class TT, typename T>
     inline void VectorAdd(TT<T> &result, const TT<T> &vec1, const TT<T> &vec2) {
@@ -268,6 +265,15 @@ namespace Me {
         operator T *() { return &data[0][0]; };
 
         operator const T *() const { return static_cast<const T *>(&data[0][0]); };
+
+        Matrix &operator=(const T *_data) {
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLS; j++) {
+                    data[i][j] = *(_data + i * COLS + j);
+                }
+            }
+            return *this;
+        }
     };
 
     typedef Matrix<float, 4, 4> Matrix4X4f;
@@ -288,51 +294,40 @@ namespace Me {
 
     // TODO: 用ispc来实现矩阵比较方法
     template<typename T, int ROWS, int COLS>
-    inline void MatrixCompare(bool &result, Matrix<T, ROWS, COLS> matrix1, Matrix<T, ROWS, COLS> matrix2) {
-        result = true;
+    inline bool MatrixCompare(Matrix<T, ROWS, COLS> matrix1, Matrix<T, ROWS, COLS> matrix2) {
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
                 if (matrix1.data[i][j] != matrix2.data[i][j]) {
-                    result = false;
-                    return;
+                    return false;
                 }
             }
         }
+        return true;
     }
 
     // TODO: 用ispc来实现矩阵比较方法
     template<int ROWS, int COLS>
-    inline void MatrixCompare(bool &result, Matrix<float, ROWS, COLS> matrix1, Matrix<float, ROWS, COLS> matrix2) {
-        result = true;
+    inline bool MatrixCompare(Matrix<float, ROWS, COLS> matrix1, Matrix<float, ROWS, COLS> matrix2) {
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
                 if (!AlmostEqualRelative(matrix1.data[i][j], matrix2.data[i][j])) {
-                    result = false;
-                    return;
+                    return false;
                 }
             }
         }
+        return true;
     }
 
+    // TODO: 用ispc来实现矩阵比较方法
     template<typename T, int ROWS, int COLS>
-    bool operator==(Matrix<T, ROWS, COLS> matrix1, Matrix<T, ROWS, COLS> matrix2) {
-        bool result;
-        MatrixCompare(result, matrix1, matrix2);
-
-        return result;
-    }
-
-    template<typename T, int ROWS, int COLS>
-    bool operator!=(Matrix<T, ROWS, COLS> matrix1, Matrix<T, ROWS, COLS> matrix2) {
-        bool result;
-        MatrixCompare(result, matrix1, matrix2);
-
-        return !result;
+    inline void MatrixCompare(bool &result, Matrix<T, ROWS, COLS> matrix1, Matrix<T, ROWS, COLS> matrix2) {
+        result = MatrixCompare(matrix1, matrix2);
+        return;
     }
 
     template<typename T, int ROWS, int COLS>
     inline void MatrixAdd(Matrix<T, ROWS, COLS> &result, const Matrix<T, ROWS, COLS> &matrix1,
-                   const Matrix<T, ROWS, COLS> &matrix2) {
+                          const Matrix<T, ROWS, COLS> &matrix2) {
         ispc::AddByElement(matrix1, matrix2, result, countof(result.data));
     }
 
@@ -346,7 +341,7 @@ namespace Me {
 
     template<typename T, int ROWS, int COLS>
     inline void MatrixSub(Matrix<T, ROWS, COLS> &result, const Matrix<T, ROWS, COLS> &matrix1,
-                   const Matrix<T, ROWS, COLS> &matrix2) {
+                          const Matrix<T, ROWS, COLS> &matrix2) {
         ispc::SubByElement(matrix1, matrix2, result, countof(result.data));
     }
 
@@ -359,7 +354,8 @@ namespace Me {
     }
 
     template<typename T, int Da, int Db, int Dc>
-    inline void MatrixMultiply(Matrix<T, Da, Dc> &result, const Matrix<T, Da, Db> &matrix1, const Matrix<T, Dc, Db> &matrix2) {
+    inline void
+    MatrixMultiply(Matrix<T, Da, Dc> &result, const Matrix<T, Da, Db> &matrix1, const Matrix<T, Dc, Db> &matrix2) {
         Matrix<T, Dc, Db> matrix2_transpose;
         Transpose(matrix2_transpose, matrix2);
         for (int i = 0; i < Da; i++) {
@@ -474,7 +470,7 @@ namespace Me {
 
 
     inline void BuildPerspectiveFovLHMatrix(Matrix4X4f &matrix, const float fieldOfView, const float screenAspect,
-                                     const float screenNear, const float screenDepth) {
+                                            const float screenNear, const float screenDepth) {
         Matrix4X4f perspective = {{{
                                            {1.0f / (screenAspect * tanf(fieldOfView * 0.5f)), 0.0f, 0.0f, 0.0f},
                                            {0.0f, 1.0f / tanf(fieldOfView * 0.5f), 0.0f, 0.0f},
@@ -497,6 +493,19 @@ namespace Me {
                                    }}};
 
         matrix = translation;
+
+        return;
+    }
+
+    inline void MatrixScale(Matrix4X4f &matrix, const float x, const float y, const float z) {
+        Matrix4X4f scale = {{{
+                                     {x, 0.0f, 0.0f, 0.0f},
+                                     {0.0f, y, 0.0f, 0.0f},
+                                     {0.0f, 0.0f, z, 0.0f},
+                                     {0.0f, 0.0f, 0.0f, 1.0f},
+                             }}};
+
+        matrix = scale;
 
         return;
     }
@@ -545,6 +554,40 @@ namespace Me {
         matrix = rotation;
 
         return;
+    }
+
+    inline void MatrixRotationAxis(Matrix4X4f &matrix, const Vector3f &axis, const float angle) {
+        float c = cosf(angle), s = sinf(angle), one_minus_c = 1.0f - c;
+
+        Matrix4X4f rotation = {{{
+                                        {c + axis.x * axis.x * one_minus_c, axis.x * axis.y * one_minus_c + axis.z * s,
+                                                axis.x * axis.z * one_minus_c - axis.y * s, 0.0f},
+                                        {axis.x * axis.y * one_minus_c - axis.z * s, c + axis.y * axis.y * one_minus_c,
+                                                axis.y * axis.z * one_minus_c + axis.x * s, 0.0f},
+                                        {axis.x * axis.z * one_minus_c + axis.y * s,
+                                                axis.y * axis.z * one_minus_c - axis.x * s,
+                                                c + axis.z * axis.z * one_minus_c, 0.0f},
+                                        {0.0f, 0.0f, 0.0f, 1.0f}
+                                }}};
+
+        matrix = rotation;
+    }
+
+    inline void MatrixRotationQuaternion(Matrix4X4f &matrix, Quaternion q) {
+        Matrix4X4f rotation = {{{
+                                        {1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z,
+                                                2.0f * q.x * q.y + 2.0f * q.w * q.z,
+                                                2.0f * q.x * q.z - 2.0f * q.w * q.y, 0.0f},
+                                        {2.0f * q.x * q.y - 2.0f * q.w * q.z,
+                                                1.0f - 2.0f * q.x * q.x - 2.0f * q.z * q.z,
+                                                2.0f * q.y * q.z + 2.0f * q.w * q.x, 0.0f},
+                                        {2.0f * q.x * q.z + 2.0f * q.w * q.y,
+                                                2.0f * q.y * q.z - 2.0f * q.y * q.z - 2.0f * q.w * q.x,
+                                                1.0f - 2.0f * q.x * q.x - 2.0f * q.y * q.y, 0.0f},
+                                        {0.0f, 0.0f, 0.0f, 1.0f}
+                                }}};
+
+        matrix = rotation;
     }
 
 }

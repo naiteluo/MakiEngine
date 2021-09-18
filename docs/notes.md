@@ -1,5 +1,9 @@
 # 笔记
 
+## TODOs
+
+- add gltf support or maybe USD?
+
 ## 目录传送门
 
 - [从零开始手敲次世代游戏引擎（序）](https://zhuanlan.zhihu.com/p/28587092)
@@ -30,7 +34,10 @@
 - [从零开始手敲次世代游戏引擎（二十四）](https://zhuanlan.zhihu.com/p/29723169) 资源管理器开篇
 - [从零开始手敲次世代游戏引擎（二十五）](https://zhuanlan.zhihu.com/p/29803502) AssetLoader
 - [从零开始手敲次世代游戏引擎（二十六）](https://zhuanlan.zhihu.com/p/29890957) Bmp Parser
-- [从零开始手敲次世代游戏引擎（二十七）](https://zhuanlan.zhihu.com/p/29933257) OpenGEX
+- [从零开始手敲次世代游戏引擎（二十七）](https://zhuanlan.zhihu.com/p/29933257) 场景描述文件解析器 & OpenGEX & Scene Graph
+- [从零开始手敲次世代游戏引擎（二十八）](https://zhuanlan.zhihu.com/p/30274711) 定义和实现场景物体及场景结构
+- [从零开始手敲次世代游戏引擎（二十九）](https://zhuanlan.zhihu.com/p/30344564)
+-
 
 ---
 
@@ -326,15 +333,32 @@ Example:
 ```c++
 template<typename T, int SizeValue>
 int GetArrLength(T(&)[SizeValue]){
-    return SizeValue;
+return SizeValue;
 }
 ```
 
-`T(&)[SizeValue]` is an unnamed parameter that is a reference to an array of size 'SizeValue' of type T. It accepts a reference to any array, where the type and size of the array are template parameters.
+`T(&)[SizeValue]` is an unnamed parameter that is a reference to an array of size 'SizeValue' of type T. It accepts a
+reference to any array, where the type and size of the array are template parameters.
 
 - 定义数组引用，需要绑定数组的长度
 - 数组有绑定内存的长度，单位数据的长度也已知，所以编译器能推导出来数组的长度, `int arr[10]; int s = sizeof(arr)/sizeof(int); // s == 10`;
 - 引用会保留数组的所有属性，包含内存长度；而指针会退化丢失内存长度；
+
+More about type deducing: Array parameter declarations are treated as if they were pointer parameters(array-to-pointer
+decay). The type of array that's passed to a template function by value is deduced to be a pointer type. Although
+functions can't declare parameters that are truly arrays, they can declare parameters that are references to arrays. And
+number of elements that an array contains can also be deduced!
+
+```c++
+template<typename T>
+void f(T param);
+
+const char name[] = "Jack"; // name's type: const char [13]
+const char *pName = "Rose"; // pName's type: const char *
+
+f(name); // deduce T as const char *
+f(pName); // deduce T as const char *
+```
 
 refer：
 
@@ -363,7 +387,7 @@ refer：
 - 初始化将创建一个新对象，同时为此新对象提供初始值，调用复制构造函数
 
 > Q: What is the difference between initialization and assignment?
-> 
+>
 > A: Initialization gives a variable an initial value at the point when it is created. Assignment gives a variable a value at some point after the variable is created.
 
 Examples in this project：
@@ -377,34 +401,37 @@ buf = assetLoader.SyncOpenAndReadBinary("Textures/icelogo-color.bmp"); // call o
 Buffer buf = assetLoader.SyncOpenAndReadBinary("Textures/icelogo-color.bmp"); // call Buffer(const Buffer &rhs) {...}
 
 ```
+
 - [Variable assignment and initialization](https://www.learncpp.com/cpp-tutorial/variable-assignment-and-initialization/)
 - [c++ 赋值和初始化详解](https://www.cnblogs.com/youxin/archive/2012/06/08/2542306.html)
 - [Understanding lvalues and rvalues in C and C++](https://eli.thegreenplace.net/2011/12/15/understanding-lvalues-and-rvalues-in-c-and-c)
-  - [译文：理解 C/C++ 中的左值和右值](https://nettee.github.io/posts/2018/Understanding-lvalues-and-rvalues-in-C-and-C/)
-  - 其中一个评论的解析比较容易理解：
-    > 写得很好，但作者用“转换”这个词不好理解，例如注释：“// + 需要右值，所以 a 和 b 被转换成右值”；《c++ primer》有更精确的描述：当一个对象被用作右值时，用的是对象的值（内容）；当对象被用作左值时，用的是对象的身份（在内存中的位置）。所以这里表述成：用a、b的值求和，产生一个右值（临时对象）
+    - [译文：理解 C/C++ 中的左值和右值](https://nettee.github.io/posts/2018/Understanding-lvalues-and-rvalues-in-C-and-C/)
+    - 其中一个评论的解析比较容易理解：
+      > 写得很好，但作者用“转换”这个词不好理解，例如注释：“// + 需要右值，所以 a 和 b 被转换成右值”；《c++ primer》有更精确的描述：当一个对象被用作右值时，用的是对象的值（内容）；当对象被用作左值时，用的是对象的身份（在内存中的位置）。所以这里表述成：用a、b的值求和，产生一个右值（临时对象）
 
 ## bitmap to struct tricks
 
 在`Framework/Codec/BMP.hpp`中出现了一个比较眼生的预编译命令：
 
 ```c++
-#pragma pack(push, 1)
+#pragma
+pack(push, 1)
 
 typedef struct _BITMAP_FILEHEADER {
-    uint16_t Signature;
-    uint32_t Size;
-    uint32_t Reserved;
-    uint32_t BitsOffset;
+uint16_t Signature;
+uint32_t Size;
+uint32_t Reserved;
+uint32_t BitsOffset;
 } BITMAP_FILEHEADER;
-#define BITMAP_FILEHEADER_SIZE 14
+#define
+BITMAP_FILEHEADER_SIZE 14
 // ...
-#pragma pack(pop)
+#pragma
+pack(pop)
 ```
 
 c/c++中struct缺省状态下会按byte进行对齐，通过预编译指令能更灵活地控制struct的对齐方式，在后续就可以直接根据BMP的保留位规范，
-对文件二进制数据通过`reinterpret_cast<BITMAP_FILEHEADER *>(buf.m_pData)`，
-直接将二进制数据进行强制类型转换，而不需要低效地按位对结构体进行赋值
+对文件二进制数据通过`reinterpret_cast<BITMAP_FILEHEADER *>(buf.m_pData)`， 直接将二进制数据进行强制类型转换，而不需要低效地按位对结构体进行赋值
 
 - `pack` is a preprocessor directive to indicate to compiler how to align data in memory.
 - [C++ Struct memory alignment](https://carlosvin.github.io/posts/cpp-pragma-pack/en/)
@@ -414,7 +441,7 @@ c/c++中struct缺省状态下会按byte进行对齐，通过预编译指令能�
 
 > reinterpret_cast 用于进行各种不同类型的指针之间、不同类型的引用之间以及指针和能容纳指针的整数类型之间的转换。
 > 转换时，执行的是逐个比特复制的操作。
-> 
+>
 > reinterpret_cast体现了 C++ 语言的设计思想：用户可以做任何操作，但要为自己的行为负责。
 
 ### endian
@@ -448,8 +475,7 @@ c/c++中struct缺省状态下会按byte进行对齐，通过预编译指令能�
 两种不同的数据组织方式，AOS是平时编程常用模型，把顶点相关属性放在一个结构体内组织，用数组存储所有顶点的结构体；
 优点是将同一个顶点的相关属性放在了连续相邻的内存区域，读取单顶点的各个属性数据很可能会全部处于CPU的高速缓存中，加快处理速度；
 
-但在GPU并行处理场景中，大多数场景GPU会一次读取所有参与计算的顶点的某个属性，这时候如果采用的是AOS，
-不同顶点的同一个属性在内存空间上地址不连续，GPU的高速缓存读取进来的数据可能是当前它不需要的，利用率较低，消耗更大；
+但在GPU并行处理场景中，大多数场景GPU会一次读取所有参与计算的顶点的某个属性，这时候如果采用的是AOS， 不同顶点的同一个属性在内存空间上地址不连续，GPU的高速缓存读取进来的数据可能是当前它不需要的，利用率较低，消耗更大；
 
 所以在游戏引擎场景中，更多地会把所有顶点的一个属性以数组方式组织，再把不同属性的数据组织到一个结构体内。
 
@@ -466,3 +492,98 @@ git rm -f mymodule
 ## `config.h.in`
 
 ## [Advantages of using std::make_unique over new operator](https://stackoverflow.com/questions/37514509/advantages-of-using-stdmake-unique-over-new-operator)
+
+## Cocoa issue
+
+新增了一个最简化的cocoa cmake
+demo用于调试和排查cocoa绘制不出来东西的问题，[minimal-cmake-cocoa-app](https://github.com/naiteluo/minimal-cmake-cocoa-app)
+
+使用的OpenGL版本会影响能使用的API
+
+目前苹果已经对OpenGL标识废弃，推荐使用metal，相关文档已经比较老旧。
+
+## Left-handed or right-handed?
+
+- [Is OpenGL coordinate system left-handed or right-handed?](https://stackoverflow.com/questions/4124041/is-opengl-coordinate-system-left-handed-or-right-handed)
+
+## glDrawArrays v.s. glDrawElements
+
+- [difference-in-gldrawarrays-and-gldrawelements](https://gamedev.stackexchange.com/questions/133208/difference-in-gldrawarrays-and-gldrawelements)
+- [gldrawelements-vs-gldrawarrays](https://community.khronos.org/t/gldrawelements-vs-gldrawarrays/33306/2)
+
+## `void *` and pointer arithmetic
+
+类型`void *`可以用来作为任意类型指针入参的定义，但`void *`是没有类型长度的，所以`void *`没法用于做指针运算， 如果要用对这种类型的入参做指针运算，要按照你希望的规则先对这个指针做cast。
+我的目标偏移量是3个单位的float，`sizeof(float)`等于4，`sizeof char`等于1， 所以可以用`(char *) NULL + 3 * sizeof(float)`
+来计算，或者用`(float *) NULL + 3`来计算。
+
+相关知识点：
+
+- 空类型指针的用途；
+- 指针运算的规则；[C++ Pointer Arithmetic](https://www.tutorialspoint.com/cplusplus/cpp_pointer_arithmatic.htm)
+- [glVertexAttribPointer](https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glVertexAttribPointer.xhtml)
+
+## RAII
+
+> Modern C++ avoids using heap memory as much as possible by declaring objects on the stack.
+> When a resource is too large for the stack, then it should be owned by an object.
+> As the object gets initialized, it acquires the resource it owns.
+> The object is then responsible for releasing the resource in its destructor.
+> The owning object itself is declared on the stack.
+> The principle that objects own resources is also known as "resource acquisition is initialization," or RAII.
+
+- [object-lifetime-and-resource-management-modern-cpp](https://docs.microsoft.com/en-us/cpp/cpp/object-lifetime-and-resource-management-modern-cpp?view=msvc-160)
+
+## universal reference
+
+> If a variable or parameter is declared to have type T&& for some deduced type T, that variable or parameter is a universal reference.
+
+## auto
+
+avoid code of this form:
+
+```c++
+auto someVar = expression of "invisible" proxy class type;
+```
+
+## differences between the dot operator (`.`) and arrow operator (`->`)
+
+- `foo->bar()` is the same as `(*foo).bar()`
+- `.` operator has greater precedence than the `*`, so we need to force this with parenthesis.
+- `->` is kind of a shortcut.
+- `.` operator can't be overloaded. `->` operator can be overloaded.
+
+## use of overloaded operator '==' is ambiguous
+
+Error:
+
+```
+In template: use of overloaded operator '==' is ambiguous (with operand types 'const __wrap_iter<Me::OpenGLGraphicsManager::DrawBatchContext *>' and 'const __wrap_iter<Me::OpenGLGraphicsManager::DrawBatchContext *>') 
+error occurred here in instantiation of function template specialization 'std::__1::operator!=<Me::OpenGLGraphicsManager::DrawBatchContext *>' requested here 
+candidate function [with _Iter1 = Me::OpenGLGraphicsManager::DrawBatchContext *, _Iter2 = Me::OpenGLGraphicsManager::DrawBatchContext *] 
+candidate function [with TT = __wrap_iter, T = Me::OpenGLGraphicsManager::DrawBatchContext *]
+```
+
+in `GeomMath.h`, we overload `==` operator with the form of: 
+
+```c++
+template<template<typename> class TT, typename T>
+    inline void VectorCompare(bool &result, const TT<T> vec1, const TT<T> vec2);
+```
+
+which also match the form of std's iterator comparing operator:
+
+```c++
+template <class _Iter1, class _Iter2>
+bool
+operator<(const __wrap_iter<_Iter1>& __x, const __wrap_iter<_Iter2>& __y);
+```
+
+fixture:
+
+make it explicit 
+
+```c++
+template<typename T>
+    inline void VectorCompare(bool &result, const <T> vec1, const TT<T> vec2);
+```

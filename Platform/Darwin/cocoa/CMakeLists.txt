@@ -27,6 +27,10 @@ target_link_libraries(${ME_PLATFORM_PREFIX}Cocoa_OpenGL
         Common
         ${COCOA_LIBRARY}
         ${OPENGL_LIBRARY}
+        ${XG_LIBRARY}
+        ${OPENGEX_LIBRARY}
+        ${OPENDDL_LIBRARY}
+        dl
         )
 target_include_directories(${ME_PLATFORM_PREFIX}Cocoa_OpenGL PRIVATE "${PROJECT_SOURCE_DIR}/External/GL/include")
 me_add_xg_platform_dependencies(${ME_PLATFORM_PREFIX}Cocoa_OpenGL)

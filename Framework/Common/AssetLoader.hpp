@@ -66,4 +66,6 @@ namespace Me {
     private:
         std::vector<std::string> m_strSearchPath;
     };
+
+    extern AssetLoader *g_pAssetLoader;
 }

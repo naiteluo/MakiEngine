@@ -1,19 +1,19 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: basic.vs
+// Filename: color.vs
 ////////////////////////////////////////////////////////////////////////////////
 
-#version 150
+#version 400
 
 /////////////////////
 // INPUT VARIABLES //
 /////////////////////
 in vec3 inputPosition;
-in vec3 inputNormal;
+in vec3 inputColor;
 
 //////////////////////
 // OUTPUT VARIABLES //
 //////////////////////
-out vec4 normal;
+out vec3 color;
 
 ///////////////////////
 // UNIFORM VARIABLES //
@@ -32,7 +32,6 @@ void main(void)
     gl_Position = viewMatrix * gl_Position;
     gl_Position = projectionMatrix * gl_Position;
 
-    normal = worldMatrix * vec4(inputNormal, 0.0f);
-    normal = viewMatrix * normal;
+    // Store the input color for the pixel shader to use.
+    color = inputColor;
 }
-

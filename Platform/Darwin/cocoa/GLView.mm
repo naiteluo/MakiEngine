@@ -13,23 +13,9 @@ namespace Me {
 
     [_openGLContext makeCurrentContext];
 
-//    GLenum a;
-//
-//    glClearColor(0, 0, 0, 0);
-//    glClear(GL_COLOR_BUFFER_BIT);
-//    glColor3f(1.0f, 0.85f, 0.35f);
-//    glBegin(GL_TRIANGLES);
-//    {
-//        glVertex3f(0.0, 0.6, 0.0);
-//        glVertex3f(-0.2, -0.3, 0.0);
-//        glVertex3f(0.2, -0.3, 0.0);
-//    }
-//    glEnd();
-//    glFlush();
-
     Me::g_pGraphicsManager->Clear();
     Me::g_pGraphicsManager->Draw();
-    glFlush();
+
     [_openGLContext flushBuffer];
 }
 
@@ -38,9 +24,9 @@ namespace Me {
 }
 
 - (instancetype)initWithFrame:(NSRect)frameRect {
-    NSLog(@"initWithFrame 0");
     self = [super initWithFrame:frameRect];
 
+    // create opengl context
     _openGLContext = [[NSOpenGLContext alloc] initWithFormat:_pixelFormat shareContext:nil];
 
     [_openGLContext makeCurrentContext];
@@ -50,19 +36,20 @@ namespace Me {
                                                  name:NSViewGlobalFrameDidChangeNotification
                                                object:self];
 
+    // fix `lockFoucs` not fired
     [_openGLContext setView:self];
-    NSLog(@"initWithFrame 1");
     return self;
 }
 
+/**
+ * not fired
+ */
 - (void)lockFocus {
-    NSLog(@"lockFocus");
     [super lockFocus];
     if ([_openGLContext view] != self) {
         [_openGLContext setView:self];
     }
     [_openGLContext makeCurrentContext];
-
 }
 
 - (void)update {
@@ -71,7 +58,6 @@ namespace Me {
 
 - (void)_surfaceNeedsUpdate:(NSNotification *)notification {
     [self update];
-
 }
 
 - (void)dealloc {

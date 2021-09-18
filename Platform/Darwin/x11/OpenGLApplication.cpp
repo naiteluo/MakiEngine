@@ -5,12 +5,14 @@
 #include "OpenGLApplication.hpp"
 #include "OpenGL/OpenGLGraphicsManager.hpp"
 #include "MemoryManager.hpp"
+#include "AssetLoader.hpp"
 
 namespace Me {
     GfxConfiguration config(8, 8, 8, 8, 24, 8, 0, 960, 540, "Game Engine From Scratch (Darwin)");
     IApplication *g_pApp = static_cast<IApplication *>(new OpenGLApplication(config));
     GraphicsManager *g_pGraphicsManager = static_cast<GraphicsManager *>(new OpenGLGraphicsManager);
     MemoryManager *g_pMemoryManager = static_cast<MemoryManager *>(new MemoryManager);
+    AssetLoader *g_pAssetLoader = static_cast<AssetLoader *>(new AssetLoader);
 }
 
 // Helper to check for extension string presence.  Adapted from:
@@ -253,9 +255,8 @@ void Me::OpenGLApplication::Tick() {
 }
 
 GLAPI void GLAPIENTRY
-gluLookAt1(GLdouble eyeX, GLdouble eyeY, GLdouble eyeZ, GLdouble centerX, GLdouble centerY, GLdouble centerZ,
+gluLookAtTemp(GLdouble eyeX, GLdouble eyeY, GLdouble eyeZ, GLdouble centerX, GLdouble centerY, GLdouble centerZ,
           GLdouble upX, GLdouble upY, GLdouble upZ) {
-    int i;
     Me::Vector3f forward, side, up;
     Me::Matrix4X4f m;
 
@@ -305,7 +306,7 @@ void Me::OpenGLApplication::OnDraw() {
     // GLU is not part of OpenGL
     // it is an OpenGL utility, not update for long time
     // we can replace it with our own version of gluLookAt
-    gluLookAt1(0., 0., 10., 0., 0., 0., 0., 1., 0.);
+    gluLookAtTemp(0., 0., 10., 0., 0., 0., 0., 1., 0.);
 
     glBegin(GL_QUADS);
     glColor3f(1., 0., 0.);

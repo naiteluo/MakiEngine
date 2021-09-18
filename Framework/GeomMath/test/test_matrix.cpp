@@ -43,10 +43,8 @@ TEST(GeomMathMatrix, Equality) {
                                      {0, 4},
                                      {0, 6}
                              }}};
-    EXPECT_TRUE(m1 == m2);
-    EXPECT_FALSE(m1 == m3);
-    EXPECT_TRUE(m1 != m3);
-    EXPECT_FALSE(m1 != m2);
+    EXPECT_TRUE(MatrixCompare(m1, m2));
+    EXPECT_FALSE(MatrixCompare(m1, m3));
 }
 
 TEST(GeomMathMatrix, BuildIdentityMatrix) {
@@ -58,7 +56,7 @@ TEST(GeomMathMatrix, BuildIdentityMatrix) {
                                     {0.00000000f, 0.00000000f, 0.00000000f, 1.00000000f},
                             }}};
     BuildIdentityMatrix(m1);
-    EXPECT_EQ(m1, expected);
+    EXPECT_TRUE(MatrixCompare(m1, expected));
 }
 
 TEST(GeomMathMatrix, MatrixRotationYawPitchRoll) {
@@ -71,7 +69,7 @@ TEST(GeomMathMatrix, MatrixRotationYawPitchRoll) {
                             }}};
     BuildIdentityMatrix(m1);
     MatrixRotationYawPitchRoll(m1, 0.2f, 0.3f, 0.4f);
-    EXPECT_EQ(m1, expected);
+    EXPECT_TRUE(MatrixCompare(m1, expected));
 }
 
 TEST(GeomMathMatrix, MatrixRotationY) {
@@ -85,7 +83,7 @@ TEST(GeomMathMatrix, MatrixRotationY) {
     BuildIdentityMatrix(m1);
     MatrixRotationY(m1, PI / 2.0f);
 
-    EXPECT_EQ(m1, expected);
+    EXPECT_TRUE(MatrixCompare(m1, expected));
 }
 
 TEST(GeomMathMatrix, MatrixRotationZ) {
@@ -99,7 +97,7 @@ TEST(GeomMathMatrix, MatrixRotationZ) {
     BuildIdentityMatrix(m1);
     MatrixRotationZ(m1, PI / 2.0f);
 
-    EXPECT_EQ(m1, expected);
+    EXPECT_TRUE(MatrixCompare(m1, expected));
 }
 
 TEST(GeomMathMatrix, MatrixTranslation) {
@@ -113,7 +111,7 @@ TEST(GeomMathMatrix, MatrixTranslation) {
     BuildIdentityMatrix(m1);
     MatrixTranslation(m1, 5.0f, 6.5f, -7.0f);
 
-    EXPECT_EQ(m1, expected);
+    EXPECT_TRUE(MatrixCompare(m1, expected));
 }
 
 TEST(GeomMathMatrix, TransformCoord) {
@@ -125,7 +123,7 @@ TEST(GeomMathMatrix, TransformCoord) {
     MatrixRotationY(ry, PI / 2.0f);
     TransformCoord(vy, ry);
 
-    EXPECT_EQ(vy, expected_y);
+    EXPECT_TRUE(VectorCompare(vy, expected_y));
 
     Vector3f vz = v;
     Matrix4X4f rz;
@@ -134,7 +132,7 @@ TEST(GeomMathMatrix, TransformCoord) {
     MatrixRotationZ(rz, PI / 2.0f);
     TransformCoord(vz, rz);
 
-    EXPECT_EQ(vz, expected_z);
+    EXPECT_TRUE(VectorCompare(vz, expected_z));
 }
 
 TEST(GeomMathMatrix, BuildViewMatrix) {
@@ -148,10 +146,18 @@ TEST(GeomMathMatrix, BuildViewMatrix) {
                             }}};
     BuildViewMatrix(view, position, lookAt, up);
 
-    EXPECT_EQ(view, expected);
+    EXPECT_TRUE(MatrixCompare(view, expected));
 }
 
 TEST(GeomMathMatrix, BuildPerspectiveFovLHMatrix) {
+//    Matrix4X4f view;
+//    Vector3f position = {0, 0, -5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
+//    BuildViewMatrix(view, position, lookAt, up);
+//    Matrix4X4f perspective;
+//    float fov = PI / 2.0f, aspect = 16.0f / 9.0f, near = 1.0f, far = 100.0f;
+//    BuildPerspectiveFovLHMatrix(perspective, fov, aspect, near, far);
+//    Matrix4X4f mvp = view * perspective;
+
     Matrix4X4f view;
     Vector3f position = {0, 0, -5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
     BuildViewMatrix(view, position, lookAt, up);
@@ -173,6 +179,7 @@ TEST(GeomMathMatrix, BuildPerspectiveFovLHMatrix) {
                                        {0.0000000000000000f, 0.0000000000000000f, 1.0101009607315063f, 1.0000000000000000f},
                                        {0.0000000000000000f, 0.0000000000000000f, 4.0404038429260254f, 5.0000000000000000f},
                                }}};
-    EXPECT_EQ(perspective, expectedPerspective);
-    EXPECT_EQ(mvp, expectedMvp);
+
+    EXPECT_TRUE(MatrixCompare(perspective, expectedPerspective));
+    EXPECT_TRUE(MatrixCompare(mvp, expectedMvp));
 }
