@@ -446,7 +446,7 @@ c/c++中struct缺省状态下会按byte进行对齐，通过预编译指令能�
 
 ### endian
 
-![endian-memory-view.png](endian-memory-view.png)
+![endian-memory-view.png](endian_memory_view.png)
 
 ![Little-Endian](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Little-Endian.svg/560px-Little-Endian.svg.png)
 
@@ -587,3 +587,11 @@ make it explicit
 template<typename T>
     inline void VectorCompare(bool &result, const <T> vec1, const TT<T> vec2);
 ```
+
+## how `static_cast` cast. how `A a = static_cast<A>(new B);` works.
+
+## blender uses the right-handed coordinate system with the z axis pointing upwards.
+
+Another reasoning for this is that a common convention for real world applications for engineering and science is that X and Y axes define a flat ground plane while the Z axis defines up and down.
+
+![img.png](blender_coordinate_system.png)

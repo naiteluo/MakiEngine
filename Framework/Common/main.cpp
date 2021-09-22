@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
         return ret;
     }
 
-    g_pSceneManager->LoadScene("Scene/paimon.ogex");
+    g_pSceneManager->LoadScene("Scene/paimon-and-objects.ogex");
 
     if ((ret = g_pGraphicsManager->Initialize()) != 0) {
         printf("Graphics Manager Initialize failed. Exit now.");

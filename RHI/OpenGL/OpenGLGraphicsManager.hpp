@@ -45,12 +45,13 @@ namespace Me {
             GLenum mode;
             GLenum type;
             GLsizei count;
+            std::shared_ptr<Matrix4X4f> transform;
         };
 
         std::vector<DrawBatchContext> m_VAO;
         std::unordered_map<std::string, unsigned int> m_Buffers;
 
-        float m_positionX = 0, m_positionY = 5, m_positionZ = -15;
+        float m_positionX = 0, m_positionY = 0, m_positionZ = -10;
         float m_rotationX = 0, m_rotationY = 0, m_rotationZ = 0;
 
         Matrix4X4f m_worldMatrix;

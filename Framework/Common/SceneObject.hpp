@@ -603,6 +603,10 @@ namespace Me {
             m_bSceneObjectOnly = object_only;
         };
 
+        operator Matrix4X4f() { return m_matrix; };
+
+        operator const Matrix4X4f() const { return m_matrix; };
+
         friend std::ostream &operator<<(std::ostream &out, const SceneObjectTransform &obj);
     };
 
