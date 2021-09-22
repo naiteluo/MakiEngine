@@ -12,6 +12,7 @@
 #include "include/AddByElement.h"
 #include "include/SubByElement.h"
 #include "include/ExchangeYAndZ.h"
+#include "include/InverseMatrix4x4f.h"
 
 #ifndef PI
 #define PI 3.14159265358979323846f
@@ -490,6 +491,20 @@ namespace Me {
         return;
     }
 
+    inline void BuildPerspectiveFovRHMatrix(Matrix4X4f &matrix, const float fieldOfView, const float screenAspect,
+                                            const float screenNear, const float screenDepth) {
+        Matrix4X4f perspective = {{{
+                                           {1.0f / (screenAspect * tanf(fieldOfView * 0.5f)), 0.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f / tanf(fieldOfView * 0.5f), 0.0f, 0.0f},
+                                           {0.0f, 0.0f, screenDepth / (screenNear - screenDepth), -1.0f},
+                                           {0.0f, 0.0f, (-screenNear * screenDepth) / (screenDepth - screenNear), 0.0f}
+                                   }}};
+
+        matrix = perspective;
+
+        return;
+    }
+
 
     inline void MatrixTranslation(Matrix4X4f &matrix, const float x, const float y, const float z) {
         Matrix4X4f translation = {{{
@@ -595,6 +610,10 @@ namespace Me {
                                 }}};
 
         matrix = rotation;
+    }
+
+    inline bool InverseMatrix4X4f(Matrix4X4f &matrix) {
+        return ispc::InverseMatrix4X4f(matrix);
     }
 
 }

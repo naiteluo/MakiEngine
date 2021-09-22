@@ -36,8 +36,14 @@
 - [从零开始手敲次世代游戏引擎（二十六）](https://zhuanlan.zhihu.com/p/29890957) Bmp Parser
 - [从零开始手敲次世代游戏引擎（二十七）](https://zhuanlan.zhihu.com/p/29933257) 场景描述文件解析器 & OpenGEX & Scene Graph
 - [从零开始手敲次世代游戏引擎（二十八）](https://zhuanlan.zhihu.com/p/30274711) 定义和实现场景物体及场景结构
-- [从零开始手敲次世代游戏引擎（二十九）](https://zhuanlan.zhihu.com/p/30344564)
--
+- [从零开始手敲次世代游戏引擎（二十九）](https://zhuanlan.zhihu.com/p/30344564) 
+- [从零开始手敲次世代游戏引擎（二十九）](https://zhuanlan.zhihu.com/p/30344564) 场景结构实现
+- [从零开始手敲次世代游戏引擎（卅）](https://zhuanlan.zhihu.com/p/30424581) 对接OpenGEX
+- [从零开始手敲次世代游戏引擎（MacOS特别篇 贰）](https://zhuanlan.zhihu.com/p/31003710) mac适配，使用cocoa
+- [从零开始手敲次世代游戏引擎（三十一）](https://zhuanlan.zhihu.com/p/30593988) mac适配，升级opengl版本
+- [从零开始手敲次世代游戏引擎（FreeBSD特别篇）](https://zhuanlan.zhihu.com/p/31171883) fressbsd适配，暂时跳过了
+- [从零开始手敲次世代游戏引擎（三十二）](https://zhuanlan.zhihu.com/p/31339430) SceneManager 和 GraphicsManager 结合，读取场景并绘制；blender介绍；
+- [从零开始手敲次世代游戏引擎（三十三）](https://zhuanlan.zhihu.com/p/31410543) 解析并应用ogex文件中的更多属性：transform、camera、lights
 
 ---
 

@@ -183,3 +183,16 @@ TEST(GeomMathMatrix, BuildPerspectiveFovLHMatrix) {
     EXPECT_TRUE(MatrixCompare(perspective, expectedPerspective));
     EXPECT_TRUE(MatrixCompare(mvp, expectedMvp));
 }
+
+TEST(GeomMathMatrix, Inverse) {
+    Matrix4X4f invertable = {{{
+        { 1.0f,  0.0f,  0.0f,  0.0f},
+        { 0.0f,  1.0f,  0.0f,  0.0f},
+        { 0.0f,  0.0f,  1.0f,  0.0f},
+        {13.0f, 14.0f, 15.0f,  1.0f}
+    }}};
+    cout << "Known Invertable Matrix: " << invertable;
+    assert(InverseMatrix4X4f(invertable));
+    cout << "Inverse of Matrix: " << invertable;
+    SUCCEED();
+}

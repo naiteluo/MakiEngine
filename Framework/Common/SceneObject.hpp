@@ -554,6 +554,10 @@ namespace Me {
             // TODO: extension
         };
 
+        float GetNearClipDistance() const { return m_fNearClipDistance; };
+
+        float GetFarClipDistance() const { return m_fFarClipDistance; };
+
     protected:
         // can only be used as base class
         SceneObjectCamera(void) : BaseSceneObject(SceneObjectType::kSceneObjectTypeCamera), m_fAspect(16.0f / 9.0f),
@@ -579,10 +583,13 @@ namespace Me {
             if (attrib == "fov") {
                 m_fFov = param;
             }
+            SceneObjectCamera::SetParam(attrib, param);
         };
 
     public:
         SceneObjectPerspectiveCamera(float fov = PI / 2.0) : SceneObjectCamera(), m_fFov(fov) {};
+
+        float GetFov() const { return m_fFov; };
 
         friend std::ostream &operator<<(std::ostream &out, const SceneObjectPerspectiveCamera &obj);
     };
