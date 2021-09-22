@@ -333,10 +333,11 @@ void OpenGLGraphicsManager::InitializeBuffers() {
 }
 
 void OpenGLGraphicsManager::RenderBuffers() {
-    static float rotateAngle = 0.0f;
+//    static float rotateAngle = 0.0f;
+    static float rotateAngle = PI / 3.0f;
 
     // Update world matrix to rotate the model
-    rotateAngle += PI / 120;
+//    rotateAngle += PI / 120;
     Matrix4X4f rotationMatrixY;
     Matrix4X4f rotationMatrixZ;
     MatrixRotationY(rotationMatrixY, rotateAngle);

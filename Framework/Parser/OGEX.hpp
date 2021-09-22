@@ -12,6 +12,21 @@ namespace Me {
             std::shared_ptr<BaseSceneNode> node;
 
             switch (structure.GetStructureType()) {
+                case OGEX::kStructureMetric: {
+                    const OGEX::MetricStructure& _structure = (const OGEX::MetricStructure &) structure;
+                    auto _key = _structure.GetMetricKey();
+                    const ODDL::Structure *sub_structure = _structure.GetFirstCoreSubnode();
+                    if (_key == "up") {
+                        const ODDL::DataStructure<ODDL::StringDataType> *dataStructure = dynamic_cast<const DataStructure<ODDL::StringDataType> *>(sub_structure);
+                        auto axis_name = dataStructure->GetDataElement(0);
+                        if (axis_name == "y") {
+                            m_bUpIsYAxis = true;
+                        } else {
+                            m_bUpIsYAxis = false;
+                        }
+                    }
+                }
+                    break;
                 case OGEX::kStructureNode: {
                     node = std::make_shared<SceneEmptyNode>(structure.GetStructureName());
                 }
@@ -236,6 +251,9 @@ namespace Me {
                     for (index = 0; index < count; index++) {
                         const float *data = _structure.GetTransform(index);
                         matrix = data;
+                        if (!m_bUpIsYAxis) {
+                            ExchangeYAndZ(matrix);
+                        }
                         transform = std::make_shared<SceneObjectTransform>(matrix, object_flag);
                         base_node->AppendChild(std::move(transform));
                     }
@@ -407,6 +425,8 @@ namespace Me {
 
             return pScene;
         }
+    private:
+        bool m_bUpIsYAxis;
     };
 }
 

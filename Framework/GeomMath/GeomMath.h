@@ -11,6 +11,7 @@
 #include "include/Transpose.h"
 #include "include/AddByElement.h"
 #include "include/SubByElement.h"
+#include "include/ExchangeYAndZ.h"
 
 #ifndef PI
 #define PI 3.14159265358979323846f
@@ -422,6 +423,11 @@ namespace Me {
         ispc::Transform(vector, matrix);
 
         return;
+    }
+
+    template<typename T, int ROWS, int COLS>
+    inline void ExchangeYAndZ(Matrix<T, ROWS, COLS> &matrix) {
+        ispc::ExchangeYAndZ(matrix, ROWS, COLS);
     }
 
     inline void BuildViewMatrix(Matrix4X4f &result, const Vector3f position, const Vector3f lookAt, const Vector3f up) {

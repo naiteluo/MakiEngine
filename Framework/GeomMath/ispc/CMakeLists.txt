@@ -1,5 +1,5 @@
 set(FUNCTIONS CrossProduct DotProduct MulByElement Transpose Normalize
-        Transform AddByElement SubByElement
+        Transform AddByElement SubByElement ExchangeYAndZ
         )
 
 foreach (FUNC IN LISTS FUNCTIONS)
