@@ -150,14 +150,6 @@ TEST(GeomMathMatrix, BuildViewMatrix) {
 }
 
 TEST(GeomMathMatrix, BuildPerspectiveFovLHMatrix) {
-//    Matrix4X4f view;
-//    Vector3f position = {0, 0, -5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
-//    BuildViewMatrix(view, position, lookAt, up);
-//    Matrix4X4f perspective;
-//    float fov = PI / 2.0f, aspect = 16.0f / 9.0f, near = 1.0f, far = 100.0f;
-//    BuildPerspectiveFovLHMatrix(perspective, fov, aspect, near, far);
-//    Matrix4X4f mvp = view * perspective;
-
     Matrix4X4f view;
     Vector3f position = {0, 0, -5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
     BuildViewMatrix(view, position, lookAt, up);
@@ -184,15 +176,59 @@ TEST(GeomMathMatrix, BuildPerspectiveFovLHMatrix) {
     EXPECT_TRUE(MatrixCompare(mvp, expectedMvp));
 }
 
-TEST(GeomMathMatrix, Inverse) {
+TEST(GeomMathMatrix, BuildPerspectiveFovRHMatrix) {
+    Matrix4X4f view;
+    Vector3f position = {0, 0, -5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
+    BuildViewMatrix(view, position, lookAt, up);
+    Matrix4X4f perspective;
+    float fov = PI / 2.0f, aspect = 16.0f / 9.0f, near = 1.0f, far = 100.0f;
+    BuildPerspectiveFovRHMatrix(perspective, fov, aspect, near, far);
+
+    Matrix4X4f mvp = view * perspective;
+
+    Matrix4X4f expectedPerspective = {{{
+                                               {0.5625f, 0.0f, 0.0f, 0.0f},
+                                               {0.0f, 1.0f, 0.0f, 0.0f},
+                                               {0.0f, 0.0f, -1.0101f, -1.0f},
+                                               {0.0f, 0.0f, -1.0101f, 0.0f},
+                                       }}};
+
+    cout << perspective;
+    cout << expectedPerspective;
+
+    Matrix4X4f expectedMvp = {{{
+                                       {0.5625f, 0.0f, 0.0f, 0.0f},
+                                       {0.0f, 1.0f, 0.0f, 0.0f},
+                                       {0.0f, 0.0f, -1.0101f, -1.0f},
+                                       {0.0f, 0.0f, -1.0101f, 0.0f},
+                               }}};
+
+    EXPECT_TRUE(MatrixCompare(perspective, expectedPerspective));
+    EXPECT_TRUE(MatrixCompare(mvp, expectedMvp));
+}
+
+TEST(GeomMathMatrix, InverseMatrix4X4f) {
     Matrix4X4f invertable = {{{
-        { 1.0f,  0.0f,  0.0f,  0.0f},
-        { 0.0f,  1.0f,  0.0f,  0.0f},
-        { 0.0f,  0.0f,  1.0f,  0.0f},
-        {13.0f, 14.0f, 15.0f,  1.0f}
-    }}};
+                                      {1.0f, 0.0f, 0.0f, 0.0f},
+                                      {0.0f, 1.0f, 0.0f, 0.0f},
+                                      {0.0f, 0.0f, 1.0f, 0.0f},
+                                      {13.0f, 14.0f, 15.0f, 1.0f}
+                              }}};
+    Matrix4X4f expected = {{{
+                                    {1.0f, 0.0f, -0.0f, 0.0f},
+                                    {0.0f, 1.0f, 0.0f, -0.0f},
+                                    {-0.0f, 0.0f, 1.0f, 0.0f},
+                                    {-13.0f, -14.0f, -15.0f, 1.0f},
+                            }}};
+    Matrix4X4f non_invertable = {{{
+                                          {1.0f, 2.0f, 3.0f, 4.0f},
+                                          {5.0f, 6.0f, 7.0f, 8.0f},
+                                          {9.0f, 10.0f, 11.0f, 12.0f},
+                                          {13.0f, 14.0f, 15.0f, 16.0f}
+                                  }}};
     cout << "Known Invertable Matrix: " << invertable;
-    assert(InverseMatrix4X4f(invertable));
+    EXPECT_TRUE(InverseMatrix4X4f(invertable));
     cout << "Inverse of Matrix: " << invertable;
-    SUCCEED();
+    EXPECT_TRUE(MatrixCompare(invertable, expected));
+    EXPECT_FALSE(InverseMatrix4X4f(non_invertable));
 }
