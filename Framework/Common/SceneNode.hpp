@@ -54,11 +54,11 @@ namespace Me {
             node.dump(out);
             out << std::endl;
 
-            for (const std::shared_ptr<BaseSceneNode> &sub_node : node.m_Children) {
+            for (const std::shared_ptr<Me::BaseSceneNode> &sub_node : node.m_Children) {
                 out << *sub_node << std::endl;
             }
 
-            for (const std::shared_ptr<SceneObjectTransform> &sub_node : node.m_Transforms) {
+            for (const std::shared_ptr<Me::SceneObjectTransform> &sub_node : node.m_Transforms) {
                 out << *sub_node << std::endl;
             }
 

@@ -111,7 +111,8 @@ int OpenGLGraphicsManager::Initialize() {
             glEnable(GL_DEPTH_TEST);
 
             // Set the polygon winding to front facing for the right-handed system.
-            glFrontFace(GL_CW);
+            // todo GL_CW v.s. GL_CCW
+            glFrontFace(GL_CCW);
 
             // Enable back face culling.
             glEnable(GL_CULL_FACE);
@@ -120,14 +121,19 @@ int OpenGLGraphicsManager::Initialize() {
             // Initialize the world/model matrix to the identity matrix.
             BuildIdentityMatrix(m_worldMatrix);
 
+            auto &scene = g_pSceneManager->GetSceneForRendering();
+            auto pCameraNode = scene.GetFirstCameraNode();
+            auto pCamera = scene.GetCamera(pCameraNode->GetSceneObjectRef());
+
             // Set the field of view and screen aspect ratio.
-            float fieldOfView = PI / 4.0f;
+            float fieldOfView = dynamic_pointer_cast<SceneObjectPerspectiveCamera>(pCamera)->GetFov();
             const GfxConfiguration &conf = g_pApp->GetConfiguration();
 
             float screenAspect = (float) conf.screenWidth / (float) conf.screenHeight;
 
             // Build the perspective projection matrix.
-            BuildPerspectiveFovLHMatrix(m_projectionMatrix, fieldOfView, screenAspect, screenNear, screenDepth);
+            BuildPerspectiveFovRHMatrix(m_projectionMatrix, fieldOfView, screenAspect, pCamera->GetNearClipDistance(),
+                                        pCamera->GetFarClipDistance());
             std::cout << "params: " << fieldOfView << " " << screenAspect << std::endl;
             std::cout << m_projectionMatrix << std::endl;
         }
@@ -333,15 +339,15 @@ void OpenGLGraphicsManager::InitializeBuffers() {
 }
 
 void OpenGLGraphicsManager::RenderBuffers() {
-//    static float rotateAngle = 0.0f;
-    static float rotateAngle = PI / 3.0f;
+    static float rotateAngle = 0.0f;
+//    static float rotateAngle = PI / 3.0f;
 
     // Update world matrix to rotate the model
 //    rotateAngle += PI / 120;
     Matrix4X4f rotationMatrixY;
     Matrix4X4f rotationMatrixZ;
     MatrixRotationY(rotationMatrixY, rotateAngle);
-    MatrixRotationZ(rotationMatrixZ, 0.0f);
+    MatrixRotationZ(rotationMatrixZ, rotateAngle);
     MatrixMultiply(m_worldMatrix, rotationMatrixZ, rotationMatrixY);
 
     // Generate the view matrix based on the camera's position.
@@ -428,44 +434,73 @@ bool OpenGLGraphicsManager::InitializeShader(const char *vsFilename, const char 
     return true;
 }
 
+//void OpenGLGraphicsManager::CalculateCameraPosition() {
+//    Vector3f up, position, lookAt;
+//    float yaw, pitch, roll;
+//    Matrix4X4f rotationMatrix;
+//
+//
+//    // Setup the vector that points upwards.
+//    up.x = 0.0f;
+//    up.y = 1.0f;
+//    up.z = 0.0f;
+//
+//    // Setup the position of the camera in the world.
+//    position.x = m_positionX;
+//    position.y = m_positionY;
+//    position.z = m_positionZ;
+//
+//    // Setup where the camera is looking by default.
+//    lookAt.x = 0.0f;
+//    lookAt.y = 0.0f;
+//    lookAt.z = 1.0f;
+//
+//    // Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.
+//    pitch = m_rotationX * 0.0174532925f;
+//    yaw = m_rotationY * 0.0174532925f;
+//    roll = m_rotationZ * 0.0174532925f;
+//
+//    // Create the rotation matrix from the yaw, pitch, and roll values.
+//    MatrixRotationYawPitchRoll(rotationMatrix, yaw, pitch, roll);
+//
+//    // Transform the lookAt and up vector by the rotation matrix so the view is correctly rotated at the origin.
+//    TransformCoord(lookAt, rotationMatrix);
+//    TransformCoord(up, rotationMatrix);
+//
+//    // Translate the rotated camera position to the location of the viewer.
+//    lookAt.x = position.x + lookAt.x;
+//    lookAt.y = position.y + lookAt.y;
+//    lookAt.z = position.z + lookAt.z;
+//
+//    // Finally create the view matrix from the three updated vectors.
+//    BuildViewMatrix(m_viewMatrix, position, lookAt, up);
+//}
+
 void OpenGLGraphicsManager::CalculateCameraPosition() {
-    Vector3f up, position, lookAt;
-    float yaw, pitch, roll;
-    Matrix4X4f rotationMatrix;
-
-
-    // Setup the vector that points upwards.
-    up.x = 0.0f;
-    up.y = 1.0f;
-    up.z = 0.0f;
-
-    // Setup the position of the camera in the world.
-    position.x = m_positionX;
-    position.y = m_positionY;
-    position.z = m_positionZ;
-
-    // Setup where the camera is looking by default.
-    lookAt.x = 0.0f;
-    lookAt.y = 0.0f;
-    lookAt.z = 1.0f;
-
-    // Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.
-    pitch = m_rotationX * 0.0174532925f;
-    yaw = m_rotationY * 0.0174532925f;
-    roll = m_rotationZ * 0.0174532925f;
-
-    // Create the rotation matrix from the yaw, pitch, and roll values.
-    MatrixRotationYawPitchRoll(rotationMatrix, yaw, pitch, roll);
-
-    // Transform the lookAt and up vector by the rotation matrix so the view is correctly rotated at the origin.
-    TransformCoord(lookAt, rotationMatrix);
-    TransformCoord(up, rotationMatrix);
-
-    // Translate the rotated camera position to the location of the viewer.
-    lookAt.x = position.x + lookAt.x;
-    lookAt.y = position.y + lookAt.y;
-    lookAt.z = position.z + lookAt.z;
-
-    // Finally create the view matrix from the three updated vectors.
-    BuildViewMatrix(m_viewMatrix, position, lookAt, up);
+    auto &scene = g_pSceneManager->GetSceneForRendering();
+    auto pCameraNode = scene.GetFirstCameraNode();
+    // set false to debug
+    static bool log_once = true;
+    if (pCameraNode) {
+        Matrix4X4f rotateX;
+        Matrix4X4f tmp;
+        m_viewMatrix = *pCameraNode->GetCalculatedTransform();
+        if (!log_once) {
+            cout << "camera transform (origin): " << m_viewMatrix << endl;
+        }
+        MatrixRotationX(rotateX, -PI / 2.0f);
+        Transpose(tmp, m_viewMatrix);
+        tmp = tmp * rotateX;
+        Transpose(m_viewMatrix, tmp);
+        if (!log_once) {
+            cout << "rotate matrix: " << rotateX << endl;
+            cout << "camera transform: " << m_viewMatrix << endl;
+            log_once = true;
+        }
+        InverseMatrix4X4f(m_viewMatrix);
+    } else {
+        cout << "Default camera." << endl;
+        Vector3f position = {0, 0, 5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
+        BuildViewMatrix(m_viewMatrix, position, lookAt, up);
+    }
 }

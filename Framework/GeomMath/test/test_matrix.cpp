@@ -232,3 +232,42 @@ TEST(GeomMathMatrix, InverseMatrix4X4f) {
     EXPECT_TRUE(MatrixCompare(invertable, expected));
     EXPECT_FALSE(InverseMatrix4X4f(non_invertable));
 }
+
+TEST(GeomMathMatrix, TryToFixBlenderExportedData) {
+//    Matrix4X4f expected = {{{
+//                                    {1.0f, 0.0f, 0.0f, 2.0f},
+//                                    {0.0f, 1.0f, 0.0f, 2.0f},
+//                                    {0.0f, 0.0f, 1.0f, 2.0f},
+//                                    {1.0f, 1.0f, 1.0f, 1.0f},
+//                            }}};
+//    Matrix4X4f rxM90;
+//    MatrixRotationX(rxM90, PI/2.0f);
+//    cout << "expected = " << expected << endl;
+//
+//    expected = expected * rxM90;
+//
+//    cout << "rotated expected = " << expected << endl;
+    Matrix4X4f b;
+    Matrix4X4f c;
+
+    Matrix4X4f a = {{{
+                             {0.685921f, 0.727676f, 0.0f, 0.0f},
+                             {-0.651558f, 0.61417f, -0.445271f, 0.0f},
+                             {-0.324014f, 0.305421f, 0.895396f, 0.0f},
+                             {7.48113f, -6.50764f, 5.34366f, 1.0f},
+                     }}};
+    Matrix4X4f rx;
+    MatrixRotationX(rx, PI / 2.0f);
+
+    cout << "a = " << a << endl;
+    cout << "rx = " << rx << endl;
+    Transpose(b, a);
+    cout << "b = T a  = " << b << endl;
+    c = b * rx;
+    Transpose(a, c);
+
+    cout << "rotated a = " << a << endl;
+
+    SUCCEED();
+
+}

@@ -13,7 +13,7 @@ namespace Me {
 
             switch (structure.GetStructureType()) {
                 case OGEX::kStructureMetric: {
-                    const OGEX::MetricStructure& _structure = (const OGEX::MetricStructure &) structure;
+                    const OGEX::MetricStructure &_structure = (const OGEX::MetricStructure &) structure;
                     auto _key = _structure.GetMetricKey();
                     const ODDL::Structure *sub_structure = _structure.GetFirstCoreSubnode();
                     if (_key == "up") {
@@ -252,7 +252,8 @@ namespace Me {
                         const float *data = _structure.GetTransform(index);
                         matrix = data;
                         if (!m_bUpIsYAxis) {
-                            ExchangeYAndZ(matrix);
+                            // todo 为什么引入camera之后不需要执行这一步了
+                            // ExchangeYAndZ(matrix);
                         }
                         transform = std::make_shared<SceneObjectTransform>(matrix, object_flag);
                         base_node->AppendChild(std::move(transform));
@@ -425,6 +426,7 @@ namespace Me {
 
             return pScene;
         }
+
     private:
         bool m_bUpIsYAxis;
     };
