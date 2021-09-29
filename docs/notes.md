@@ -601,3 +601,15 @@ template<typename T>
 Another reasoning for this is that a common convention for real world applications for engineering and science is that X and Y axes define a flat ground plane while the Z axis defines up and down.
 
 ![img.png](blender_coordinate_system.png)
+
+## blender ogex exporter
+
+补充一点更新说明。
+
+OpenGEX官网上已经找不到blender的插件的，老的插件也已经找不到了，github上有一个替代插件：https://github.com/Squareys/Blender-OpenGEX （现在大概只能找得到这个版本），这个插件能在2.7*版本blender上正常使用。
+
+但此版本的插件与作者阿文当时使用的版本倒出数据存在差异，监于已经找不到老版本插件的代码了，所以无从考究，只能通过导出transform matrix做猜测，按照阿文当前branch的写法，使用仓库中的ogex文件是没问题的，但是使用新版插件自己倒出ogex文件的话， camera的tansform数据不一致，原因是新版本插件的作者认为blender默认朝下的摄像头比较反人类（选中camera按alt+r可以重置为初始机位），所以在插件中对摄像头节点的transform数据做了基于x axis的-90deg旋转，所以导致导出的ogex文件因为camera问题，导致看不到东西。
+
+如果使用此新插件的话，可以在获取camera的tansform matrix后再做一次x轴的逆变换
+
+另外，作者的master分支里有老版的script
