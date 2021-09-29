@@ -208,7 +208,7 @@ namespace Me {
 
 
     float DefaultAttenFunc(float intensity, float distance) {
-        return intensity / (1 + distance);
+        return intensity / pow(1 + distance, 2.0f);
     }
 
 }

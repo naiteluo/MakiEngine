@@ -140,6 +140,7 @@ namespace Me {
             struct {
                 T r, g, b, a;
             };
+            swizzle<Vector3Type, T, 0, 1, 2> xyz;
             swizzle<Vector3Type, T, 0, 2, 1> xzy;
             swizzle<Vector3Type, T, 1, 0, 2> yxz;
             swizzle<Vector3Type, T, 1, 2, 0> yzx;

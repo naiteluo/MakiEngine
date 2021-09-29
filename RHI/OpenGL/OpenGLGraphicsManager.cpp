@@ -118,24 +118,7 @@ int OpenGLGraphicsManager::Initialize() {
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
 
-            // Initialize the world/model matrix to the identity matrix.
-            BuildIdentityMatrix(m_worldMatrix);
-
-            auto &scene = g_pSceneManager->GetSceneForRendering();
-            auto pCameraNode = scene.GetFirstCameraNode();
-            auto pCamera = scene.GetCamera(pCameraNode->GetSceneObjectRef());
-
-            // Set the field of view and screen aspect ratio.
-            float fieldOfView = dynamic_pointer_cast<SceneObjectPerspectiveCamera>(pCamera)->GetFov();
-            const GfxConfiguration &conf = g_pApp->GetConfiguration();
-
-            float screenAspect = (float) conf.screenWidth / (float) conf.screenHeight;
-
-            // Build the perspective projection matrix.
-            BuildPerspectiveFovRHMatrix(m_projectionMatrix, fieldOfView, screenAspect, pCamera->GetNearClipDistance(),
-                                        pCamera->GetFarClipDistance());
-            std::cout << "params: " << fieldOfView << " " << screenAspect << std::endl;
-            std::cout << m_projectionMatrix << std::endl;
+            BuildIdentityMatrix(m_DrawFrameContext.m_worldMatrix);
         }
 
         InitializeShader(VS_SHADER_SOURCE_FILE, PS_SHADER_SOURCE_FILE);
@@ -183,7 +166,7 @@ void OpenGLGraphicsManager::Draw() {
     glFlush();
 }
 
-bool OpenGLGraphicsManager::SetShaderParameters(float *worldMatrix, float *viewMatrix, float *projectionMatrix) {
+bool OpenGLGraphicsManager::SetPerFrameShaderParameters() {
     unsigned int location;
 
     // Set the world matrix in the vertex shader.
@@ -191,22 +174,46 @@ bool OpenGLGraphicsManager::SetShaderParameters(float *worldMatrix, float *viewM
     if (location == -1) {
         return false;
     }
-    glUniformMatrix4fv(location, 1, false, worldMatrix);
+    glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.m_worldMatrix);
 
     // Set the view matrix in the vertex shader.
     location = glGetUniformLocation(m_shaderProgram, "viewMatrix");
     if (location == -1) {
         return false;
     }
-    glUniformMatrix4fv(location, 1, false, viewMatrix);
+    glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.m_viewMatrix);
 
     // Set the projection matrix in the vertex shader.
     location = glGetUniformLocation(m_shaderProgram, "projectionMatrix");
     if (location == -1) {
         return false;
     }
-    glUniformMatrix4fv(location, 1, false, projectionMatrix);
+    glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.m_projectionMatrix);
 
+    // Set the lighting parameters for ps shader
+    location = glGetUniformLocation(m_shaderProgram, "lightPosition");
+    if (location == -1) {
+        return false;
+    }
+    glUniform3fv(location, 1, m_DrawFrameContext.m_lightPosition);
+
+    location = glGetUniformLocation(m_shaderProgram, "lightColor");
+    if (location == -1) {
+        return false;
+    }
+    glUniform4fv(location, 1, m_DrawFrameContext.m_lightColor);
+
+    return true;
+}
+
+bool OpenGLGraphicsManager::SetPerBatchShaderParameters(const char *paramName, float *param) {
+    unsigned int location;
+
+    location = glGetUniformLocation(m_shaderProgram, paramName);
+    if (location == -1) {
+        return false;
+    }
+    glUniformMatrix4fv(location, 1, false, param);
     return true;
 }
 
@@ -340,23 +347,25 @@ void OpenGLGraphicsManager::InitializeBuffers() {
 
 void OpenGLGraphicsManager::RenderBuffers() {
     static float rotateAngle = 0.0f;
-//    static float rotateAngle = PI / 3.0f;
 
     // Update world matrix to rotate the model
-//    rotateAngle += PI / 120;
+    rotateAngle += PI / 180;
     Matrix4X4f rotationMatrixY;
     Matrix4X4f rotationMatrixZ;
-    MatrixRotationY(rotationMatrixY, rotateAngle);
+    MatrixRotationY(rotationMatrixY, 0);
     MatrixRotationZ(rotationMatrixZ, rotateAngle);
-    MatrixMultiply(m_worldMatrix, rotationMatrixZ, rotationMatrixY);
+    MatrixMultiply(m_DrawFrameContext.m_worldMatrix, rotationMatrixZ, rotationMatrixY);
 
     // Generate the view matrix based on the camera's position.
-    CalculateCameraPosition();
+    CalculateCamera();
+    CalculateLights();
+
+    SetPerFrameShaderParameters();
 
     for (auto dbc : m_VAO) {
         // Set the color shader as the current shader program and set the matrices that it will use for rendering
         glUseProgram(m_shaderProgram);
-        SetShaderParameters(*dbc.transform * m_worldMatrix, m_viewMatrix, m_projectionMatrix);
+        SetPerBatchShaderParameters("objectLocalMatrix", *dbc.transform);
         glBindVertexArray(dbc.vao);
         glDrawElements(dbc.mode, dbc.count, dbc.type, 0);
     }
@@ -418,7 +427,7 @@ bool OpenGLGraphicsManager::InitializeShader(const char *vsFilename, const char 
 
     // Bind the shader input variables.
     glBindAttribLocation(m_shaderProgram, 0, "inputPosition");
-    glBindAttribLocation(m_shaderProgram, 1, "inputColor");
+    glBindAttribLocation(m_shaderProgram, 1, "inputNormal");
 
     // Link the shader program.
     glLinkProgram(m_shaderProgram);
@@ -476,7 +485,7 @@ bool OpenGLGraphicsManager::InitializeShader(const char *vsFilename, const char 
 //    BuildViewMatrix(m_viewMatrix, position, lookAt, up);
 //}
 
-void OpenGLGraphicsManager::CalculateCameraPosition() {
+void OpenGLGraphicsManager::CalculateCamera() {
     auto &scene = g_pSceneManager->GetSceneForRendering();
     auto pCameraNode = scene.GetFirstCameraNode();
     // set false to debug
@@ -484,23 +493,50 @@ void OpenGLGraphicsManager::CalculateCameraPosition() {
     if (pCameraNode) {
         Matrix4X4f rotateX;
         Matrix4X4f tmp;
-        m_viewMatrix = *pCameraNode->GetCalculatedTransform();
+        m_DrawFrameContext.m_viewMatrix = *pCameraNode->GetCalculatedTransform();
         if (!log_once) {
-            cout << "camera transform (origin): " << m_viewMatrix << endl;
+            cout << "camera transform (origin): " << m_DrawFrameContext.m_viewMatrix << endl;
         }
         MatrixRotationX(rotateX, -PI / 2.0f);
-        Transpose(tmp, m_viewMatrix);
+        Transpose(tmp, m_DrawFrameContext.m_viewMatrix);
         tmp = tmp * rotateX;
-        Transpose(m_viewMatrix, tmp);
+        Transpose(m_DrawFrameContext.m_viewMatrix, tmp);
         if (!log_once) {
             cout << "rotate matrix: " << rotateX << endl;
-            cout << "camera transform: " << m_viewMatrix << endl;
+            cout << "camera transform: " << m_DrawFrameContext.m_viewMatrix << endl;
             log_once = true;
         }
-        InverseMatrix4X4f(m_viewMatrix);
+        InverseMatrix4X4f(m_DrawFrameContext.m_viewMatrix);
     } else {
         cout << "Default camera." << endl;
         Vector3f position = {0, 0, 5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
-        BuildViewMatrix(m_viewMatrix, position, lookAt, up);
+        BuildViewMatrix(m_DrawFrameContext.m_viewMatrix, position, lookAt, up);
+    }
+
+    auto pCamera = scene.GetCamera(pCameraNode->GetSceneObjectRef());
+
+    float fieldOfView = dynamic_pointer_cast<SceneObjectPerspectiveCamera>(pCamera)->GetFov();
+    const GfxConfiguration &conf = g_pApp->GetConfiguration();
+
+    float screenAspect = (float) conf.screenWidth / (float) conf.screenHeight;
+
+    BuildPerspectiveFovRHMatrix(m_DrawFrameContext.m_projectionMatrix, fieldOfView, screenAspect,
+                                pCamera->GetNearClipDistance(), pCamera->GetFarClipDistance());
+}
+
+void OpenGLGraphicsManager::CalculateLights() {
+    auto &scene = g_pSceneManager->GetSceneForRendering();
+    auto pLightNode = scene.GetFirstLightNode();
+    if (pLightNode) {
+        m_DrawFrameContext.m_lightPosition = {0.0f, 0.0f, 0.0f};
+        TransformCoord(m_DrawFrameContext.m_lightPosition, *pLightNode->GetCalculatedTransform());
+
+        auto pLight = scene.GetLight(pLightNode->GetSceneObjectRef());
+        if (pLight) {
+            m_DrawFrameContext.m_lightColor = pLight->GetColor().Value;
+        }
+    } else {
+        m_DrawFrameContext.m_lightPosition = {10.0f, 10.0f, 10.0f};
+        m_DrawFrameContext.m_lightColor = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 }
