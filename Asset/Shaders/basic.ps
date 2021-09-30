@@ -33,10 +33,15 @@ out vec4 outputColor;
 ////////////////////////////////////////////////////////////////////////////////
 void main(void)
 {
+    float diffuseCoefficient = 1;
+    float specularCoefficient = 1;
+
     vec3 N = normalize(normal.xyz);
     vec3 L = normalize((viewMatrix * vec4(lightPosition, 1.0f)).xyz - v.xyz);
-    float diffuse = dot(N, L);
+    vec3 R = normalize(2 * dot(L, N) * N -L);
+    vec3 V = normalize(v.xyz);
+    float diffuse = diffuseCoefficient * dot(N, L);
 
-    outputColor = vec4(lightColor.rgb * clamp(diffuse, 0.0f, 1.0f), 1.0f);
-//    outputColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    outputColor = vec4(lightColor.rgb * clamp(diffuse + specularCoefficient * dot(R, V), 0.0f, 1.0f), 1.0f);
+    //    outputColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }
