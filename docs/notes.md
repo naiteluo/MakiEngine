@@ -44,7 +44,7 @@
 - [从零开始手敲次世代游戏引擎（FreeBSD特别篇）](https://zhuanlan.zhihu.com/p/31171883) fressbsd适配，暂时跳过了
 - [从零开始手敲次世代游戏引擎（三十二）](https://zhuanlan.zhihu.com/p/31339430) SceneManager 和 GraphicsManager 结合，读取场景并绘制；blender介绍；
 - [从零开始手敲次世代游戏引擎（三十三）](https://zhuanlan.zhihu.com/p/31410543) 解析并应用ogex文件中的更多属性：transform、camera、lights
-
+- [从零开始手敲次世代游戏引擎（三十四）](https://zhuanlan.zhihu.com/p/31543646) 导入复杂模型并测试、解决问题
 ---
 
 - `#pragma once` 用于防止header重复展开，等效于复杂的 `#ifndef __INTERFACE_H__`写法。
