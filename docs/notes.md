@@ -36,8 +36,14 @@
 - [从零开始手敲次世代游戏引擎（二十六）](https://zhuanlan.zhihu.com/p/29890957) Bmp Parser
 - [从零开始手敲次世代游戏引擎（二十七）](https://zhuanlan.zhihu.com/p/29933257) 场景描述文件解析器 & OpenGEX & Scene Graph
 - [从零开始手敲次世代游戏引擎（二十八）](https://zhuanlan.zhihu.com/p/30274711) 定义和实现场景物体及场景结构
-- [从零开始手敲次世代游戏引擎（二十九）](https://zhuanlan.zhihu.com/p/30344564)
--
+- [从零开始手敲次世代游戏引擎（二十九）](https://zhuanlan.zhihu.com/p/30344564) 
+- [从零开始手敲次世代游戏引擎（二十九）](https://zhuanlan.zhihu.com/p/30344564) 场景结构实现
+- [从零开始手敲次世代游戏引擎（卅）](https://zhuanlan.zhihu.com/p/30424581) 对接OpenGEX
+- [从零开始手敲次世代游戏引擎（MacOS特别篇 贰）](https://zhuanlan.zhihu.com/p/31003710) mac适配，使用cocoa
+- [从零开始手敲次世代游戏引擎（三十一）](https://zhuanlan.zhihu.com/p/30593988) mac适配，升级opengl版本
+- [从零开始手敲次世代游戏引擎（FreeBSD特别篇）](https://zhuanlan.zhihu.com/p/31171883) fressbsd适配，暂时跳过了
+- [从零开始手敲次世代游戏引擎（三十二）](https://zhuanlan.zhihu.com/p/31339430) SceneManager 和 GraphicsManager 结合，读取场景并绘制；blender介绍；
+- [从零开始手敲次世代游戏引擎（三十三）](https://zhuanlan.zhihu.com/p/31410543) 解析并应用ogex文件中的更多属性：transform、camera、lights
 
 ---
 
@@ -446,7 +452,7 @@ c/c++中struct缺省状态下会按byte进行对齐，通过预编译指令能�
 
 ### endian
 
-![endian-memory-view.png](endian-memory-view.png)
+![endian-memory-view.png](endian_memory_view.png)
 
 ![Little-Endian](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Little-Endian.svg/560px-Little-Endian.svg.png)
 
@@ -587,3 +593,25 @@ make it explicit
 template<typename T>
     inline void VectorCompare(bool &result, const <T> vec1, const TT<T> vec2);
 ```
+
+## how `static_cast` cast. how `A a = static_cast<A>(new B);` works.
+
+## blender uses the right-handed coordinate system with the z axis pointing upwards.
+
+Another reasoning for this is that a common convention for real world applications for engineering and science is that X and Y axes define a flat ground plane while the Z axis defines up and down.
+
+![img.png](blender_coordinate_system.png)
+
+## blender ogex exporter
+
+补充一点更新说明。
+
+OpenGEX官网上已经找不到blender的插件的，老的插件也已经找不到了，github上有一个替代插件：https://github.com/Squareys/Blender-OpenGEX （现在大概只能找得到这个版本），这个插件能在2.7*版本blender上正常使用。
+
+但此版本的插件与作者阿文当时使用的版本倒出数据存在差异，监于已经找不到老版本插件的代码了，所以无从考究，只能通过导出transform matrix做猜测，按照阿文当前branch的写法，使用仓库中的ogex文件是没问题的，但是使用新版插件自己倒出ogex文件的话， camera的tansform数据不一致，原因是新版本插件的作者认为blender默认朝下的摄像头比较反人类（选中camera按alt+r可以重置为初始机位），所以在插件中对摄像头节点的transform数据做了基于x axis的-90deg旋转，所以导致导出的ogex文件因为camera问题，导致看不到东西。
+
+如果使用此新插件的话，可以在获取camera的tansform matrix后再做一次x轴的逆变换
+
+另外，作者的master分支里有老版的script
+
+调试或检查matrix相关计算是否正确可以用 WolframAlpha，[例如](https://www.wolframalpha.com/input/?i2d=true&i=%7B%7B0.6859206557273865%2C-0.651558%2C+-0.324014%2C7.481131553649902%7D%2C%7B0.7276763319969177%2C0.61417%2C0.305421%2C-6.5076398849487305%7D%2C%7B0%2C-0.445271%2C0.895396%2C5.34366512298584%7D%2C%7B0%2C0%2C0%2C1%7D%7D*%7B%7B1%2C0%2C0%2C0%7D%2C%7B0%2C-4.37114e-08%2C1%2C0%7D%2C%7B0%2C-1%2C-4.37114e-08%2C0%7D%2C%7B0%2C0%2C0%2C1%7D%7D)
