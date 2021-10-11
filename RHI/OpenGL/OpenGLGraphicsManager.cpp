@@ -450,20 +450,22 @@ void OpenGLGraphicsManager::CalculateCamera() {
     // set false to debug
     static bool log_once = true;
     if (pCameraNode) {
-        Matrix4X4f rotateX;
-        Matrix4X4f tmp;
         m_DrawFrameContext.m_viewMatrix = *pCameraNode->GetCalculatedTransform();
-        if (!log_once) {
-            cout << "camera transform (origin): " << m_DrawFrameContext.m_viewMatrix << endl;
-        }
-        MatrixRotationX(rotateX, -PI / 2.0f);
-        Transpose(tmp, m_DrawFrameContext.m_viewMatrix);
-        tmp = tmp * rotateX;
-        Transpose(m_DrawFrameContext.m_viewMatrix, tmp);
-        if (!log_once) {
-            cout << "rotate matrix: " << rotateX << endl;
-            cout << "camera transform: " << m_DrawFrameContext.m_viewMatrix << endl;
-            log_once = true;
+        if (g_pApp->GetConfiguration().preprocessCameraMatrix) {
+            Matrix4X4f rotateX;
+            Matrix4X4f tmp;
+            if (!log_once) {
+                cout << "camera transform (origin): " << m_DrawFrameContext.m_viewMatrix << endl;
+            }
+            MatrixRotationX(rotateX, -PI / 2.0f);
+            Transpose(tmp, m_DrawFrameContext.m_viewMatrix);
+            tmp = tmp * rotateX;
+            Transpose(m_DrawFrameContext.m_viewMatrix, tmp);
+            if (!log_once) {
+                cout << "rotate matrix: " << rotateX << endl;
+                cout << "camera transform: " << m_DrawFrameContext.m_viewMatrix << endl;
+                log_once = true;
+            }
         }
         InverseMatrix4X4f(m_DrawFrameContext.m_viewMatrix);
     } else {

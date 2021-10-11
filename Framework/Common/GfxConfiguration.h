@@ -34,6 +34,7 @@ namespace Me {
         uint32_t screenWidth;
         uint32_t screenHeight;
         const char *appName;
+        bool preprocessCameraMatrix;
 
         friend std::wostream &operator<<(std::wostream &out, const GfxConfiguration &conf) {
             out << "App Name:" << conf.appName << std::endl;
