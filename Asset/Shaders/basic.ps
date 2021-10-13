@@ -42,6 +42,6 @@ void main(void)
     vec3 V = normalize(v.xyz);
     float diffuse = diffuseCoefficient * dot(N, L);
 
-    outputColor = vec4(lightColor.rgb * clamp(diffuse + specularCoefficient * dot(R, V), 0.0f, 1.0f), 1.0f);
+    outputColor = vec4(0.03, 0.03, 0.03, 1) + vec4(lightColor.rgb * clamp(diffuse + specularCoefficient * dot(R, V), 0.0f, 1.0f), 1.0f);
     //    outputColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }

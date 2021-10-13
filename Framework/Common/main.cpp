@@ -28,8 +28,8 @@ int main(int argc, char **argv) {
         return ret;
     }
 
-    g_pSceneManager->LoadScene("Scene/paimon-and-objects.ogex");
-//    g_pSceneManager->LoadScene("Scene/test1.ogex");
+//    g_pSceneManager->LoadScene("Scene/paimon-and-objects.ogex");
+    g_pSceneManager->LoadScene("Scene/test1.ogex");
 //    g_pSceneManager->LoadScene("Scene/aili.ogex");
     g_pApp->GetConfiguration().preprocessCameraMatrix = true;
 
