@@ -54,7 +54,7 @@ namespace Me {
             GLuint vao;
             GLenum mode;
             GLenum type;
-            GLsizei count;
+            std::vector<GLsizei> counts;
             std::shared_ptr<Matrix4X4f> transform;
         };
 

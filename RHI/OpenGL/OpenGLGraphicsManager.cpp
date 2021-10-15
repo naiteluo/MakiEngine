@@ -279,17 +279,7 @@ void OpenGLGraphicsManager::InitializeBuffers() {
                 m_Buffers.push_back(buffer_id);
             }
 
-            // generate index buffer's id
-            glGenBuffers(1, &buffer_id);
-
-            const SceneObjectIndexArray &index_array = pMesh->GetIndexArray(0);
-            auto index_array_size = index_array.GetDataSize();
-            auto index_array_data = index_array.GetData();
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer_id);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_array_size, index_array_data, GL_STATIC_DRAW);
-
-            GLsizei indexCount = static_cast<GLsizei>(index_array.GetIndexCount());
+            auto indexGroupCount = pMesh->GetIndexGroupCount();
             GLenum mode;
 
             switch (pMesh->GetPrimitiveType()) {
@@ -315,33 +305,45 @@ void OpenGLGraphicsManager::InitializeBuffers() {
                     continue;
             }
 
-            GLenum type;
-            switch (index_array.GetIndexType()) {
-                case IndexDataType::kIndexDataTypeInt8:
-                    type = GL_UNSIGNED_BYTE;
-                    break;
-                case IndexDataType::kIndexDataTypeInt16:
-                    type = GL_UNSIGNED_SHORT;
-                    break;
-                case IndexDataType::kIndexDataTypeInt32:
-                    type = GL_UNSIGNED_INT;
-                    break;
-                default:
-                    cerr << "Error: Unsupported Index Type " << index_array << endl;
-                    cerr << "Mesh: " << *pMesh << endl;
-                    cerr << "Geometry: " << *pGeometry << endl;
-                    continue;
+            for (decltype(indexGroupCount) i = 0; i < indexGroupCount; i++) {
+                // generate index buffer's id
+                glGenBuffers(1, &buffer_id);
+
+                const SceneObjectIndexArray &index_array = pMesh->GetIndexArray(i);
+                auto index_array_size = index_array.GetDataSize();
+                auto index_array_data = index_array.GetData();
+
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer_id);
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_array_size, index_array_data, GL_STATIC_DRAW);
+                GLsizei indexCount = static_cast<GLsizei>(index_array.GetIndexCount());
+                GLenum type;
+                switch (index_array.GetIndexType()) {
+                    case IndexDataType::kIndexDataTypeInt8:
+                        type = GL_UNSIGNED_BYTE;
+                        break;
+                    case IndexDataType::kIndexDataTypeInt16:
+                        type = GL_UNSIGNED_SHORT;
+                        break;
+                    case IndexDataType::kIndexDataTypeInt32:
+                        type = GL_UNSIGNED_INT;
+                        break;
+                    default:
+                        cerr << "Error: Unsupported Index Type " << index_array << endl;
+                        cerr << "Mesh: " << *pMesh << endl;
+                        cerr << "Geometry: " << *pGeometry << endl;
+                        continue;
+                }
+
+                m_Buffers.push_back(buffer_id);
+
+                DrawBatchContext &dbc = *(new DrawBatchContext);
+                dbc.vao = vao;
+                dbc.mode = mode;
+                dbc.type = type;
+                dbc.counts.push_back(indexCount);
+                dbc.transform = pGeometryNode->GetCalculatedTransform();
+                m_DrawBatchContext.push_back(std::move(dbc));
             }
-
-            m_Buffers.push_back(buffer_id);
-
-            DrawBatchContext &dbc = *(new DrawBatchContext);
-            dbc.vao = vao;
-            dbc.mode = mode;
-            dbc.type = type;
-            dbc.count = indexCount;
-            dbc.transform = pGeometryNode->GetCalculatedTransform();
-            m_DrawBatchContext.push_back(std::move(dbc));
         }
         pGeometryNode = scene.GetNextGeometryNode();
     }
@@ -369,7 +371,12 @@ void OpenGLGraphicsManager::RenderBuffers() {
         glUseProgram(m_shaderProgram);
         SetPerBatchShaderParameters("modelMatrix", *dbc.transform);
         glBindVertexArray(dbc.vao);
-        glDrawElements(dbc.mode, dbc.count, dbc.type, 0);
+
+        auto indexBufferCount = dbc.counts.size();
+        const GLvoid **pIndicies = new const GLvoid *[indexBufferCount];
+        // render the vertex buffer using the index buffer.
+        glMultiDrawElements(dbc.mode, dbc.counts.data(), dbc.type, pIndicies, indexBufferCount);
+        delete[] pIndicies;
     }
 }
 
@@ -470,20 +477,28 @@ void OpenGLGraphicsManager::CalculateCamera() {
         }
         InverseMatrix4X4f(m_DrawFrameContext.m_viewMatrix);
     } else {
-        cout << "Default camera." << endl;
-        Vector3f position = {0, 0, 5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
+        Vector3f position = {0, -5, 0}, lookAt = {0, 0, 0}, up = {0, 0, 1};
         BuildViewMatrix(m_DrawFrameContext.m_viewMatrix, position, lookAt, up);
     }
 
-    auto pCamera = scene.GetCamera(pCameraNode->GetSceneObjectRef());
+    float fieldOfView = PI / 2.0f;
+    float nearClipDistance = 1.0f;
+    float farClipDistance = 100.0f;
 
-    float fieldOfView = dynamic_pointer_cast<SceneObjectPerspectiveCamera>(pCamera)->GetFov();
+    if (pCameraNode) {
+        auto pCamera = scene.GetCamera(pCameraNode->GetSceneObjectRef());
+        fieldOfView = dynamic_pointer_cast<SceneObjectPerspectiveCamera>(pCamera)->GetFov();
+        nearClipDistance = pCamera->GetNearClipDistance();
+        farClipDistance = pCamera->GetFarClipDistance();
+    }
+
     const GfxConfiguration &conf = g_pApp->GetConfiguration();
 
     float screenAspect = (float) conf.screenWidth / (float) conf.screenHeight;
 
+    // build the perspective projection matrix.
     BuildPerspectiveFovRHMatrix(m_DrawFrameContext.m_projectionMatrix, fieldOfView, screenAspect,
-                                pCamera->GetNearClipDistance(), pCamera->GetFarClipDistance());
+                                nearClipDistance, farClipDistance);
 }
 
 void OpenGLGraphicsManager::CalculateLights() {
@@ -498,7 +513,7 @@ void OpenGLGraphicsManager::CalculateLights() {
             m_DrawFrameContext.m_lightColor = pLight->GetColor().Value;
         }
     } else {
-        m_DrawFrameContext.m_lightPosition = {10.0f, 10.0f, -10.0f};
+        m_DrawFrameContext.m_lightPosition = {-1.0f, -5.0f, 0.0f};
         m_DrawFrameContext.m_lightColor = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 }
