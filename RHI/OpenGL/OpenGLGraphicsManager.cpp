@@ -103,7 +103,7 @@ int OpenGLGraphicsManager::Initialize() {
         result = 0;
         printf("OpenGL Version %d.%d loaded\n", GLVersion.major, GLVersion.minor);
 
-        if (GLAD_GL_VERSION_3_0) {
+        if (GLAD_GL_VERSION_3_3) {
             // Set the depth buffer to be entirely cleared to 1.0 values.
             glClearDepth(1.0f);
 
@@ -247,7 +247,7 @@ void OpenGLGraphicsManager::InitializeBuffers() {
                 glBufferData(GL_ARRAY_BUFFER, v_property_array_data_size, v_property_array_data, GL_STATIC_DRAW);
 
                 glEnableVertexAttribArray(i);
-                glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
+
                 switch (v_property_array.GetDataType()) {
                     case VertexDataType::kVertexDataTypeFloat1:
                         glVertexAttribPointer(i, 1, GL_FLOAT, false, 0, 0);
@@ -371,9 +371,10 @@ void OpenGLGraphicsManager::RenderBuffers() {
         glUseProgram(m_shaderProgram);
         SetPerBatchShaderParameters("modelMatrix", *dbc.transform);
         glBindVertexArray(dbc.vao);
-
         auto indexBufferCount = dbc.counts.size();
         const GLvoid **pIndicies = new const GLvoid *[indexBufferCount];
+        // temporarily fix memory issue
+        memset(pIndicies, 0x00, sizeof(GLvoid*) * indexBufferCount);
         // render the vertex buffer using the index buffer.
         glMultiDrawElements(dbc.mode, dbc.counts.data(), dbc.type, pIndicies, indexBufferCount);
         delete[] pIndicies;
