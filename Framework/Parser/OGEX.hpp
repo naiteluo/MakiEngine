@@ -307,8 +307,7 @@ namespace Me {
                     std::shared_ptr<SceneObjectLight> light;
 
                     if (!strncmp(_type_str, "infinite", 8)) {
-                        // ToDo: implement this
-                        return;
+                        light = std::make_shared<SceneObjectInfiniteLight>();
                     } else if (!strncmp(_type_str, "point", 5)) {
                         light = std::make_shared<SceneObjectOmniLight>();
                     } else if (!strncmp(_type_str, "spot", 5)) {
