@@ -28,11 +28,23 @@ int main(int argc, char **argv) {
         return ret;
     }
 
-//    g_pSceneManager->LoadScene("Scene/paimon-and-objects.ogex");
-//    g_pSceneManager->LoadScene("Scene/test1.ogex");
-    g_pSceneManager->LoadScene("Scene/hutao.ogex");
-//    g_pSceneManager->LoadScene("Scene/aili.ogex");
-    g_pApp->GetConfiguration().preprocessCameraMatrix = true;
+    std::string scene_file_name = "Scene/test1.ogex";
+    std::string preprocess_flag = "-yes";
+
+    if (argc > 1) {
+        scene_file_name = argv[1];
+    }
+
+    if (argc > 2) {
+        preprocess_flag = argv[2];
+    }
+
+    g_pApp->GetConfiguration().preprocessCameraMatrix = strcmp(preprocess_flag.c_str(), "-no");
+
+    if ((ret = g_pSceneManager->LoadScene(scene_file_name.c_str())) != 0) {
+        printf("Unable to load scene: %s\n", scene_file_name.c_str());
+        return ret;
+    }
 
     if ((ret = g_pGraphicsManager->Initialize()) != 0) {
         printf("Graphics Manager Initialize failed. Exit now.");
